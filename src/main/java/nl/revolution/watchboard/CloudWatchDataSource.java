@@ -59,10 +59,10 @@ public class CloudWatchDataSource {
         public void run() {
             System.out.println("Starting CloudWatch data worker");
             Config config = Config.getInstance();
-            int backendUpdateIntervalSeconds = config.getInt("backendUpdateIntervalSeconds");
+            int backendUpdateIntervalSeconds = config.getInt(Config.BACKEND_UPDATE_INTERVAL_SECONDS);
 
             initWebDriver();
-            loginToAwsConsole(config.getString("aws.username"), config.getString("aws.password"));
+            loginToAwsConsole(config.getString(Config.AWS_USERNAME), config.getString(Config.AWS_PASSWORD));
 
             System.out.println("Starting main update loop.");
             while (!stop) {
@@ -71,7 +71,7 @@ public class CloudWatchDataSource {
                 // Generate reports for all graphs for all dashboards.
                 Config.getInstance().getDashboards().stream().forEach(
                         dashboard -> dashboard.getGraphs().stream().forEach(graph -> {
-                                if (!stop) getReportScreenshot(graph.getUrl(),
+                                    if (!stop) getReportScreenshot(graph.getUrl(),
                                             graph.getBrowserWidth(),
                                             graph.getBrowserHeight(),
                                             graph.getImagePath());
@@ -154,7 +154,7 @@ public class CloudWatchDataSource {
 
         private void loginToAwsConsole(String username, String password) {
             System.out.println("Logging in to AWS console.");
-            driver.get("https://mlmbrg.signin.aws.amazon.com");
+            driver.get(Config.getInstance().getString(Config.AWS_SIGNIN_URL));
             doSleep(500);
             driver.get("https://console.aws.amazon.com/console/home");
             verifyTitle("Amazon Web Services Sign-In");

@@ -20,12 +20,13 @@ import java.util.Optional;
 public class APIHandler extends AbstractHandler {
 
     private static final String CONTENT_TYPE_JSON_UTF8 = "application/json;charset=utf-8";
-    private static final String IMAGE_PATH = Config.getInstance().getString("temp.path");
+    private static final String IMAGE_PATH = Config.getInstance().getString(Config.TEMP_PATH);
+
 
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
 
-        final String contextRoot = Config.getInstance().getString("web.contextroot").endsWith("/") ? Config.getInstance().getString("web.contextroot") : Config.getInstance().getString("web.contextroot") + "/";
+        final String contextRoot = Config.getInstance().getContextRoot();
         final String requestURI = request.getRequestURI();
 
         if (requestURI.equals(contextRoot + "dashboards")) {
@@ -55,13 +56,13 @@ public class APIHandler extends AbstractHandler {
         JSONArray dashboards = new JSONArray();
         Config.getInstance().getDashboards().stream().forEach(dashboard -> {
             JSONObject dashObj = new JSONObject();
-            dashObj.put("id", dashboard.getId());
-            dashObj.put("title", dashboard.getTitle());
+            dashObj.put(Config.ID, dashboard.getId());
+            dashObj.put(Config.TITLE, dashboard.getTitle());
             dashboards.add(dashObj);
         });
 
         JSONObject jsonResponse = new JSONObject();
-        jsonResponse.put("dashboards", dashboards);
+        jsonResponse.put(Config.DASHBOARDS, dashboards);
 
         try {
             OutputStream out = response.getOutputStream();

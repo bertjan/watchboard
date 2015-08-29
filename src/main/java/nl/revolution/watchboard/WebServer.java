@@ -9,8 +9,7 @@ import org.eclipse.jetty.servlets.gzip.GzipHandler;
 public class WebServer {
 
     public Server createServer() {
-        int httpPort = Config.getInstance().getInt("httpPort");
-        String contextRoot = Config.getInstance().getString("web.contextroot");
+        int httpPort = Config.getInstance().getInt(Config.HTTP_PORT);
         String webDir = this.getClass().getClassLoader().getResource("web").toExternalForm();
         HandlerList webHandlers = new HandlerList();
 
@@ -19,7 +18,7 @@ public class WebServer {
         indexResource.setDirectoriesListed(false);
         indexResource.setResourceBase(webDir);
         indexResource.setWelcomeFiles(new String[]{"index.html"});
-        ContextHandler indexContextHandler = new ContextHandler(contextRoot);
+        ContextHandler indexContextHandler = new ContextHandler(Config.getInstance().getString(Config.WEB_CONTEXTROOT));
         indexContextHandler.setHandler(indexResource);
         webHandlers.addHandler(indexContextHandler);
 
@@ -30,11 +29,7 @@ public class WebServer {
             dashboardesource.setResourceBase(webDir);
             dashboardesource.setWelcomeFiles(new String[]{"dashboard.html"});
             ContextHandler dashboardContextHandler;
-            if (contextRoot.endsWith("/")) {
-                dashboardContextHandler = new ContextHandler(contextRoot + dashboardId);
-            } else {
-                dashboardContextHandler = new ContextHandler(contextRoot + "/" + dashboardId);
-            }
+            dashboardContextHandler = new ContextHandler(Config.getInstance().getContextRoot() + dashboardId);
             dashboardContextHandler.setHandler(dashboardesource);
             webHandlers.addHandler(dashboardContextHandler);
         });
