@@ -5,7 +5,7 @@ import org.eclipse.jetty.server.Server;
 public class DashboardServer {
 
     public static void main(String... args) throws Exception {
-        CloudWatchDataWorker dataWorker = new CloudWatchDataWorker();
+        CloudWatchDataSource dataWorker = new CloudWatchDataSource();
         Server webServer = new WebServer().createServer();
 
         // Setup shutdown hooks.
@@ -22,5 +22,11 @@ public class DashboardServer {
 
         webServer.start();
         dataWorker.start();
+
+        System.out.println("DashboardServer running. Press enter to quit.");
+        System.in.read();
+
+        webServer.stop();
+        dataWorker.stop();
     }
 }
