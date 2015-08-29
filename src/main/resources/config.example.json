@@ -1,0 +1,23 @@
+{
+  "httpPort" : 8080,
+  "aws.username" : "johndoe",
+  "aws.password" : "secret",
+  "temp.path" : "/tmp",
+  "web.contextroot" : "/",
+  "backendUpdateIntervalSeconds" : 60,
+  "dashboards" : [
+    {
+      "id" : "myfirstdashboard",
+      "title" : "My first dashboard",
+      "graphs" : [
+        {
+          "url" : "https://eu-west-1.console.aws.amazon.com/cloudwatch/home?region=eu-west-1#metrics:graph=!replace-url-with-cloudwatch-graph-url",
+          "id" : "myfirstdashboard-myfirstgraph",
+          "browserWidth" : 1600,
+          "browserHeight" : 600,
+          "imageHeight" : 400
+        }
+      ]
+    }
+  ]
+}

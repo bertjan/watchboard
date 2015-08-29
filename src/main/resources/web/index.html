@@ -1,0 +1,29 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        // Initial rendering.
+        $.ajax({
+            url: 'dashboards',
+            success:function(data) {
+                for (var i = 0; i < data.dashboards.length; i++) {
+                    dashboard = data.dashboards[i];
+                    $("#dashboards").html($("#dashboards").html() +
+                            "<a href=\""+ dashboard.id + "\">" + dashboard.title + "</a><br/>");
+                }
+            },
+            error:function(jqXHR, textStatus,errorThrown) {
+                $("#dashboards").text("No dashboards found.");
+            }
+        });
+    });
+</script>
+<h1>Dashboards</h1>
+<div id="dashboards"></div>
+
+</body>
+</html>

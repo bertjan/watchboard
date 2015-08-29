@@ -1,0 +1,66 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+</head>
+<body style="margin: 2px; padding: 0px;">
+
+<script type="text/javascript">
+
+    function endsWith(str, suffix) {
+        return str.indexOf(suffix, str.length - suffix.length) !== -1;
+    }
+
+    $(document).ready(function() {
+        var pathname = window.location.pathname;
+        if (endsWith(pathname, '/')) {
+            pathname = pathname.substring(0, pathname.length-1);
+        }
+        var dashboardId = pathname.substring(pathname.lastIndexOf('/')+1, pathname.length);
+
+        // Initial rendering.
+        $.ajax({
+            url: '../status/' + dashboardId,
+            success:function(data) {
+                $("#title").text(data.title);
+                for (var i = 0; i < data.images.length; i++) {
+                    image = data.images[i];
+                    $("#images").html($("#images").html() +
+                            "<a href=\""+ image.url + "\" target=\"_blank\">" +
+                            "<img style=\"margin: 4px\" id=\""  + image.id + "\" " +
+                            "data-lastmodified=\""+ image.lastModified +"\" " +
+                            "height=\"" + image.height + "\" " +
+                            "src=\"" + image.filename + "\"></a>");
+                }
+            }
+        });
+
+        // Periodic update.
+        setInterval(function(){
+            $.ajax({
+                url: '../status/' + dashboardId,
+                success:function(data){
+                    for (var i = 0; i < data.images.length; i++) {
+                        image = data.images[i];
+                        imageElement=$('img#'+image.id)
+                        storedLastModified=imageElement.attr("data-lastmodified");
+                        newLastModified=image.lastModified;
+
+                        if (newLastModified != storedLastModified) {
+                            // refresh.
+                            imageElement.attr('data-lastmodified', image.lastModified);
+                            imageElement.attr('src', image.filename + '?' + image.lastModified);
+                        }
+                    }
+                }
+            });
+            // Scan each second for updated images.
+        }, 1000);
+
+    });
+</script>
+<a href=".."><img src="back-icon.png" style="height: 50px; position: absolute; top:-13px; left: -10px;"></a>
+<div style="text-align:center"><span id="title" style="font-weight:bold"></span></div>
+<div id="images"></div>
+
+</body>
+</html>
