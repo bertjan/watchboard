@@ -32,10 +32,11 @@ public class Config {
     public static final String AWS_USERNAME = "aws.username";
     public static final String AWS_PASSWORD = "aws.password";
     public static final String BACKEND_UPDATE_INTERVAL_SECONDS = "backendUpdateIntervalSeconds";
+    public static final String MAX_SESSION_DURATION_MINUTES = "maxSessionDurationMinutes";
     public static final String AWS_SIGNIN_URL = "aws.signin.url";
 
     private static final List<String> REQUIRED_CONFIG_KEYS = Arrays.asList(HTTP_PORT, WEB_CONTEXTROOT, AWS_USERNAME,
-            AWS_PASSWORD, AWS_SIGNIN_URL, TEMP_PATH, BACKEND_UPDATE_INTERVAL_SECONDS, DASHBOARDS);
+            AWS_PASSWORD, AWS_SIGNIN_URL, TEMP_PATH, BACKEND_UPDATE_INTERVAL_SECONDS, MAX_SESSION_DURATION_MINUTES, DASHBOARDS);
     private static final String EXTENSION_PNG = ".png";
 
     private static Config instance;

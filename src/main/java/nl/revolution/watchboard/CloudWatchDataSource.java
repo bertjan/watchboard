@@ -50,7 +50,6 @@ public class CloudWatchDataSource {
     private class CloudWatchDataWorker extends Thread {
 
         // TODO:
-        // - restart and re-login every each loop iterations (for example, each 30 minutes)
         // - proper logging
 
         private WebDriver driver;
@@ -65,6 +64,8 @@ public class CloudWatchDataSource {
             loginToAwsConsole(config.getString(Config.AWS_USERNAME), config.getString(Config.AWS_PASSWORD));
 
             System.out.println("Starting main update loop.");
+            long currentSessionStart = System.currentTimeMillis();
+
             while (!stop) {
                 System.out.println("Updating data from AWS.");
 
@@ -82,10 +83,21 @@ public class CloudWatchDataSource {
 
                 // Wait before fetching next update.
                 doSleep(1000 * backendUpdateIntervalSeconds);
+
+                // Re-start webdriver and re-login to AWS console every now and than to prevent session max duration issues.
+                long currentSessionTimeInMinutes = ((System.currentTimeMillis() - currentSessionStart) / 1000 / 60);
+                System.out.println("currentSessionTimeInMinutes: " + currentSessionTimeInMinutes);
+                if (currentSessionTimeInMinutes > Config.getInstance().getInt(Config.MAX_SESSION_DURATION_MINUTES)) {
+                    System.out.println("Max session duration exceeded, restarting browser.");
+                    shutdownWebDriver();
+                    initWebDriver();
+                    loginToAwsConsole(config.getString(Config.AWS_USERNAME), config.getString(Config.AWS_PASSWORD));
+                    currentSessionStart = System.currentTimeMillis();
+                }
             }
 
             // Stop webdriver.
-            driver.quit();
+            shutdownWebDriver();
         }
 
         private void initWebDriver() {
@@ -95,6 +107,14 @@ public class CloudWatchDataSource {
             driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
             driver.manage().timeouts().setScriptTimeout(20, TimeUnit.SECONDS);
             driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+            doSleep(500);
+        }
+
+        private void shutdownWebDriver() {
+            if (driver != null) {
+                driver.quit();
+                driver = null;
+            }
             doSleep(500);
         }
 

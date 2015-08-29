@@ -6,6 +6,7 @@
   "temp.path" : "/tmp",
   "web.contextroot" : "/",
   "backendUpdateIntervalSeconds" : 60,
+  "maxSessionDurationMinutes" : 30,
   "dashboards" : [
     {
       "id" : "myfirstdashboard",
