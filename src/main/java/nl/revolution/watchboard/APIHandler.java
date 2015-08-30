@@ -7,6 +7,8 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -19,9 +21,10 @@ import java.util.Optional;
 
 public class APIHandler extends AbstractHandler {
 
+    private static final Logger LOG = LoggerFactory.getLogger(APIHandler.class);
+
     private static final String CONTENT_TYPE_JSON_UTF8 = "application/json;charset=utf-8";
     private static final String IMAGE_PATH = Config.getInstance().getString(Config.TEMP_PATH);
-
 
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
@@ -125,7 +128,7 @@ public class APIHandler extends AbstractHandler {
         IOUtils.copy(new FileInputStream(imageFile), out);
         out.flush();
         out.close();
-        System.out.println("Served " + filename + ".");
+        LOG.debug("Served " + filename + ".");
     }
 
 }

@@ -12,6 +12,8 @@ import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -25,6 +27,8 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 public class CloudWatchDataSource {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CloudWatchDataSource.class);
 
     private Thread worker;
     private boolean stop;
@@ -40,8 +44,8 @@ public class CloudWatchDataSource {
                 stop = true;
                 try {
                     worker.join();
-                } catch (InterruptedException ex) {
-                    System.out.println("Error stopping CloudWatchDataWorker: " + ex);
+                } catch (InterruptedException e) {
+                    LOG.error("Error stopping CloudWatchDataWorker: ", e);
                 }
             }
             worker = null;
@@ -50,26 +54,23 @@ public class CloudWatchDataSource {
 
     private class CloudWatchDataWorker extends Thread {
 
-        // TODO:
-        // - proper logging
-
         private WebDriver driver;
         private static final String MAXIMIZE_IMAGE_CONTENT = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAOCAYAAADwikbvAAAAHElEQVR42mNwcXH5Ty5mGHjNpIBRzSNUM92TJwDOA1GY0jTyxAAAAABJRU5ErkJggg==";
 
         public void run() {
-            System.out.println("Starting CloudWatch data worker");
+            LOG.info("Starting CloudWatch data worker");
             Config config = Config.getInstance();
             int backendUpdateIntervalSeconds = config.getInt(Config.BACKEND_UPDATE_INTERVAL_SECONDS);
 
             initWebDriver();
             loginToAwsConsole(config.getString(Config.AWS_USERNAME), config.getString(Config.AWS_PASSWORD));
 
-            System.out.println("Starting main update loop.");
+            LOG.info("Starting main update loop.");
             long currentSessionStart = System.currentTimeMillis();
 
             while (!stop) {
                 try {
-                    System.out.println("Updating data from AWS.");
+                    LOG.info("Updating data from AWS.");
 
                     // Generate reports for all graphs for all dashboards.
                     Config.getInstance().getDashboards().stream().forEach(
@@ -88,16 +89,16 @@ public class CloudWatchDataSource {
 
                     // Re-start webdriver and re-login to AWS console every now and than to prevent session max duration issues.
                     long currentSessionTimeInMinutes = ((System.currentTimeMillis() - currentSessionStart) / 1000 / 60);
-                    System.out.println("currentSessionTimeInMinutes: " + currentSessionTimeInMinutes);
+                    LOG.info("currentSessionTimeInMinutes: " + currentSessionTimeInMinutes);
                     if (currentSessionTimeInMinutes > Config.getInstance().getInt(Config.MAX_SESSION_DURATION_MINUTES)) {
-                        System.out.println("Max session duration exceeded, restarting browser.");
+                        LOG.info("Max session duration exceeded, restarting browser.");
                         shutdownWebDriver();
                         initWebDriver();
                         loginToAwsConsole(config.getString(Config.AWS_USERNAME), config.getString(Config.AWS_PASSWORD));
                         currentSessionStart = System.currentTimeMillis();
                     }
                 } catch (WebDriverException e) {
-                    System.out.println("Caught WebDriverException: " + e.getStackTrace());
+                    LOG.error("Caught WebDriverException: ", e);
 
                     // Loop will restart; rate limit this a bit ;-)
                     doSleep(5000);
@@ -109,7 +110,7 @@ public class CloudWatchDataSource {
         }
 
         private void initWebDriver() {
-            System.out.println("Initializing PhantomJS webDriver");
+            LOG.info("Initializing PhantomJS webDriver");
             // driver = new FirefoxDriver();
             driver = new PhantomJSDriver();
             driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
@@ -177,11 +178,11 @@ public class CloudWatchDataSource {
                     element.getSize().getWidth(), element.getSize().getHeight());
             ImageIO.write(eleScreenshot, "png", screenshot);
             FileUtils.copyFile(screenshot, new File(fileName));
-            System.out.println("Updated " + fileName + ".");
+            LOG.info("Updated " + fileName + ".");
         }
 
         private void loginToAwsConsole(String username, String password) {
-            System.out.println("Logging in to AWS console.");
+            LOG.info("Logging in to AWS console.");
             driver.get(Config.getInstance().getString(Config.AWS_SIGNIN_URL));
             doSleep(500);
             driver.get("https://console.aws.amazon.com/console/home");

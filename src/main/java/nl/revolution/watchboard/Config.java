@@ -7,6 +7,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +19,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Config {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Config.class);
 
     public static final String ID = "id";
     public static final String TITLE = "title";
@@ -67,7 +71,7 @@ public class Config {
 
     private void readConfigFromDisk() throws IOException, ParseException {
         String configFile = getCurrentPath() + "/config.json";
-        System.out.println("Using config file: " + configFile);
+        LOG.info("Using config file: {}", configFile);
         String configStr = FileUtils.readFileToString(new File(configFile));
         config = (JSONObject) new JSONParser().parse(new StringReader(configStr));
     }

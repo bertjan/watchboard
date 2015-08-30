@@ -5,8 +5,12 @@ import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlets.gzip.GzipHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WebServer {
+
+    private static final Logger LOG = LoggerFactory.getLogger(WebServer.class);
 
     public Server createServer() {
         int httpPort = Config.getInstance().getInt(Config.HTTP_PORT);
@@ -42,7 +46,7 @@ public class WebServer {
         Server webServer = new Server(httpPort);
         webServer.setHandler(gzipHandler);
 
-        System.out.println("Webserver created, listening on port " + httpPort);
+        LOG.info("Webserver created, listening on port {}", httpPort);
         return webServer;
     }
 

@@ -1,8 +1,12 @@
 package nl.revolution.watchboard;
 
 import org.eclipse.jetty.server.Server;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DashboardServer {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DashboardServer.class);
 
     public static void main(String... args) throws Exception {
         CloudWatchDataSource dataWorker = new CloudWatchDataSource();
@@ -23,7 +27,7 @@ public class DashboardServer {
         webServer.start();
         dataWorker.start();
 
-        System.out.println("DashboardServer running. Press enter to quit.");
+        LOG.info("DashboardServer running. Press enter to quit.");
         System.in.read();
 
         webServer.stop();
