@@ -6,6 +6,7 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -67,32 +68,39 @@ public class CloudWatchDataSource {
             long currentSessionStart = System.currentTimeMillis();
 
             while (!stop) {
-                System.out.println("Updating data from AWS.");
+                try {
+                    System.out.println("Updating data from AWS.");
 
-                // Generate reports for all graphs for all dashboards.
-                Config.getInstance().getDashboards().stream().forEach(
-                        dashboard -> dashboard.getGraphs().stream().forEach(graph -> {
-                                    if (!stop) getReportScreenshot(graph.getUrl(),
-                                            graph.getBrowserWidth(),
-                                            graph.getBrowserHeight(),
-                                            graph.getImagePath());
+                    // Generate reports for all graphs for all dashboards.
+                    Config.getInstance().getDashboards().stream().forEach(
+                            dashboard -> dashboard.getGraphs().stream().forEach(graph -> {
+                                        if (!stop) getReportScreenshot(graph.getUrl(),
+                                                graph.getBrowserWidth(),
+                                                graph.getBrowserHeight(),
+                                                graph.getImagePath());
 
-                                }
-                        ));
-                if (stop) break;
+                                    }
+                            ));
+                    if (stop) break;
 
-                // Wait before fetching next update.
-                doSleep(1000 * backendUpdateIntervalSeconds);
+                    // Wait before fetching next update.
+                    doSleep(1000 * backendUpdateIntervalSeconds);
 
-                // Re-start webdriver and re-login to AWS console every now and than to prevent session max duration issues.
-                long currentSessionTimeInMinutes = ((System.currentTimeMillis() - currentSessionStart) / 1000 / 60);
-                System.out.println("currentSessionTimeInMinutes: " + currentSessionTimeInMinutes);
-                if (currentSessionTimeInMinutes > Config.getInstance().getInt(Config.MAX_SESSION_DURATION_MINUTES)) {
-                    System.out.println("Max session duration exceeded, restarting browser.");
-                    shutdownWebDriver();
-                    initWebDriver();
-                    loginToAwsConsole(config.getString(Config.AWS_USERNAME), config.getString(Config.AWS_PASSWORD));
-                    currentSessionStart = System.currentTimeMillis();
+                    // Re-start webdriver and re-login to AWS console every now and than to prevent session max duration issues.
+                    long currentSessionTimeInMinutes = ((System.currentTimeMillis() - currentSessionStart) / 1000 / 60);
+                    System.out.println("currentSessionTimeInMinutes: " + currentSessionTimeInMinutes);
+                    if (currentSessionTimeInMinutes > Config.getInstance().getInt(Config.MAX_SESSION_DURATION_MINUTES)) {
+                        System.out.println("Max session duration exceeded, restarting browser.");
+                        shutdownWebDriver();
+                        initWebDriver();
+                        loginToAwsConsole(config.getString(Config.AWS_USERNAME), config.getString(Config.AWS_PASSWORD));
+                        currentSessionStart = System.currentTimeMillis();
+                    }
+                } catch (WebDriverException e) {
+                    System.out.println("Caught WebDriverException: " + e.getStackTrace());
+
+                    // Loop will restart; rate limit this a bit ;-)
+                    doSleep(5000);
                 }
             }
 
