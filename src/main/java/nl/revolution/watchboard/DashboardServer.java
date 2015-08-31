@@ -7,8 +7,12 @@ import org.slf4j.LoggerFactory;
 public class DashboardServer {
 
     private static final Logger LOG = LoggerFactory.getLogger(DashboardServer.class);
+    private static String appVersion;
 
     public static void main(String... args) throws Exception {
+        // Set backend app version: unique id for each time the app starts
+        // (to enable auto refesh in the frontend on app restart/upgrade).
+        appVersion = "WatchBoard-" + System.currentTimeMillis();
         CloudWatchDataSource dataWorker = new CloudWatchDataSource();
         Server webServer = new WebServer().createServer();
 
@@ -32,5 +36,9 @@ public class DashboardServer {
 
         webServer.stop();
         dataWorker.stop();
+    }
+
+    public static String getAppVersion() {
+        return appVersion;
     }
 }

@@ -5,6 +5,7 @@
 <body style="margin: 2px; padding: 0px;">
 
 <script type="text/javascript">
+    var appVersion;
 
     function endsWith(str, suffix) {
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
@@ -21,6 +22,7 @@
         $.ajax({
             url: '../status/' + dashboardId,
             success:function(data) {
+                appVersion = data.appVersion;
                 $("#title").text(data.title);
                 for (var i = 0; i < data.images.length; i++) {
                     image = data.images[i];
@@ -40,6 +42,11 @@
             $.ajax({
                 url: '../status/' + dashboardId,
                 success:function(data){
+                    if (appVersion != data.appVersion) {
+                        // Force reload of page from server to keep front- and backend in sync.
+                        location.reload(true);
+                    }
+
                     for (var i = 0; i < data.images.length; i++) {
                         image = data.images[i];
                         imageElement=$('img#'+image.id)

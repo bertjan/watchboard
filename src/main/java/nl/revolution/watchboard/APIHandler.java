@@ -93,6 +93,7 @@ public class APIHandler extends AbstractHandler {
         Dashboard dashboard = dashboardOpt.get();
 
         JSONObject jsonResponse = new JSONObject();
+        jsonResponse.put("appVersion", DashboardServer.getAppVersion());
         jsonResponse.put("id", dashboard.getId());
         jsonResponse.put("title", dashboard.getTitle());
 
