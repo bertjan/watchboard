@@ -3,3 +3,5 @@
 phantomjsdriver.log
 dependency-reduced-pom.xml
 src/main/resources/config.json
+deploy.sh
+

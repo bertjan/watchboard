@@ -128,7 +128,7 @@ public class APIHandler extends AbstractHandler {
         IOUtils.copy(new FileInputStream(imageFile), out);
         out.flush();
         out.close();
-        LOG.debug("Served " + filename + ".");
+        LOG.info("Served " + filename + ".");
     }
 
 }
