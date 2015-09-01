@@ -10,6 +10,11 @@
         $.ajax({
             url: 'dashboards',
             success:function(data) {
+
+                data.dashboards.sort(function(dash1, dash2) {
+                    return dash1.id.localeCompare(dash2.id);
+                });
+
                 for (var i = 0; i < data.dashboards.length; i++) {
                     dashboard = data.dashboards[i];
                     $("#dashboards").html($("#dashboards").html() +
