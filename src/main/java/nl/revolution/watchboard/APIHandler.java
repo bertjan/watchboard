@@ -126,7 +126,11 @@ public class APIHandler extends AbstractHandler {
 
         File imageFile = new File(IMAGE_PATH + "/" + filename);
         OutputStream out = response.getOutputStream();
-        IOUtils.copy(new FileInputStream(imageFile), out);
+        try {
+            IOUtils.copy(new FileInputStream(imageFile), out);
+        } catch (IOException e) {
+            LOG.error("Could not write image file: ", e);
+        }
         out.flush();
         out.close();
         LOG.info("Served " + filename + ".");
