@@ -28,7 +28,13 @@ import static org.junit.Assert.assertThat;
 
 public class CloudWatchDataSource {
 
+    // TODO
+    // - rearrange packages
+    // - add tests
+
     private static final Logger LOG = LoggerFactory.getLogger(CloudWatchDataSource.class);
+
+    private long currentSessionStartTimestamp;
 
     private Thread worker;
     private boolean stop;
@@ -66,7 +72,7 @@ public class CloudWatchDataSource {
             loginToAwsConsole(config.getString(Config.AWS_USERNAME), config.getString(Config.AWS_PASSWORD));
 
             LOG.info("Starting main update loop.");
-            long currentSessionStart = System.currentTimeMillis();
+            currentSessionStartTimestamp = System.currentTimeMillis();
 
             while (!stop) {
                 try {
@@ -88,19 +94,21 @@ public class CloudWatchDataSource {
                     doSleep(1000 * backendUpdateIntervalSeconds);
 
                     // Re-start webdriver and re-login to AWS console every now and than to prevent session max duration issues.
-                    long currentSessionTimeInMinutes = ((System.currentTimeMillis() - currentSessionStart) / 1000 / 60);
+                    long currentSessionTimeInMinutes = ((System.currentTimeMillis() - currentSessionStartTimestamp) / 1000 / 60);
                     LOG.info("currentSessionTimeInMinutes: " + currentSessionTimeInMinutes);
                     if (currentSessionTimeInMinutes > Config.getInstance().getInt(Config.MAX_SESSION_DURATION_MINUTES)) {
                         LOG.info("Max session duration exceeded, restarting browser.");
-                        shutdownWebDriver();
-                        initWebDriver();
-                        loginToAwsConsole(config.getString(Config.AWS_USERNAME), config.getString(Config.AWS_PASSWORD));
-                        currentSessionStart = System.currentTimeMillis();
+
+                        // Restart; this also resets the session duration timer.
+                        restartWebDriverAndLoginToAWSConsole();
                     }
                 } catch (WebDriverException e) {
                     LOG.error("Caught WebDriverException: ", e);
 
-                    // Loop will restart; rate limit this a bit ;-)
+                    // Start over, webdriver/phantomjs might be broken.
+                    restartWebDriverAndLoginToAWSConsole();
+
+                    // Loop will restart next; rate limit this a bit ;-)
                     doSleep(5000);
                 }
             }
@@ -125,6 +133,13 @@ public class CloudWatchDataSource {
                 driver = null;
             }
             doSleep(500);
+        }
+
+        private void restartWebDriverAndLoginToAWSConsole() {
+            shutdownWebDriver();
+            initWebDriver();
+            loginToAwsConsole(Config.getInstance().getString(Config.AWS_USERNAME), Config.getInstance().getString(Config.AWS_PASSWORD));
+            currentSessionStartTimestamp = System.currentTimeMillis();
         }
 
         public void verifyTitle(String expectedTitle) {
