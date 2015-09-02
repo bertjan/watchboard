@@ -163,12 +163,11 @@ public class CloudWatchDataSource {
 
             // Wait until loading is finished.
             long loadingStart = System.currentTimeMillis();
-            boolean loading = true;
-            while (loading) {
+            while (true) {
                 if (!driver.findElement(By.id("gwt-debug-graphLoadingIndicator")).isDisplayed()) {
                     long loadTimeMS = System.currentTimeMillis() - loadingStart;
                     LOG.debug("Graph loaded in {} ms.", loadTimeMS);
-                    loading = false;
+                    break;
                 }
 
                 long waitingForMS = System.currentTimeMillis() - loadingStart;
