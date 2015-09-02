@@ -13,12 +13,13 @@ import java.io.IOException;
 public class NotFoundHandler extends AbstractHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(NotFoundHandler.class);
+    public static final String RESPONSE_BODY_404 = "404 - Not found.";
 
     public void handle(String target, Request baseRequest, HttpServletRequest request,
                        HttpServletResponse response) throws IOException, ServletException {
         LOG.warn("404 for {}", baseRequest.getRequestURI());
         response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        response.getWriter().write("404 - Not found.");
+        response.getWriter().write(RESPONSE_BODY_404);
         baseRequest.setHandled(true);
     }
 
