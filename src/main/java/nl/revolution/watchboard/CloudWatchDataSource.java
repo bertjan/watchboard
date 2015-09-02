@@ -165,12 +165,13 @@ public class CloudWatchDataSource {
             long loadingStart = System.currentTimeMillis();
             boolean loading = true;
             while (loading) {
-                long waitingForMS = System.currentTimeMillis() - loadingStart;
                 if (!driver.findElement(By.id("gwt-debug-graphLoadingIndicator")).isDisplayed()) {
-                    LOG.debug("Graph loaded in {} ms.", waitingForMS);
+                    long loadTimeMS = System.currentTimeMillis() - loadingStart;
+                    LOG.debug("Graph loaded in {} ms.", loadTimeMS);
                     loading = false;
                 }
 
+                long waitingForMS = System.currentTimeMillis() - loadingStart;
                 LOG.debug("Waiting until {} is loaded (waited for {} ms).", filename, waitingForMS);
                 if ((waitingForMS / 1000) > MAX_GRAPH_LOADING_TIME_IN_SECONDS) {
                     LOG.error("Max waiting time of {} seconds for loading graph expired, giving up.", MAX_GRAPH_LOADING_TIME_IN_SECONDS);
