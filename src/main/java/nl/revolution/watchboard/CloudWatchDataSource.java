@@ -92,6 +92,7 @@ public class CloudWatchDataSource {
                     if (stop) break;
 
                     // Wait before fetching next update.
+                    LOG.debug("Sleeping {} seconds until next update.", backendUpdateIntervalSeconds);
                     doSleep(1000 * backendUpdateIntervalSeconds);
 
                     // Re-start webdriver and re-login to AWS console every now and than to prevent session max duration issues.
