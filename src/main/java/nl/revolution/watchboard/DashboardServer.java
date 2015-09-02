@@ -27,7 +27,7 @@ public class DashboardServer {
                     dataWorker.stop();
                     webServer.stop();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOG.error("Stopping workers failed: ", e);
                 }
             }
         });

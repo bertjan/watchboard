@@ -73,7 +73,7 @@ public class APIHandler extends AbstractHandler {
             out.flush();
             out.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error("Error while creating dashboards response: ", e);
         }
     }
 
@@ -107,7 +107,7 @@ public class APIHandler extends AbstractHandler {
             out.flush();
             out.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error("Error while creating status response: ", e);
         }
     }
 

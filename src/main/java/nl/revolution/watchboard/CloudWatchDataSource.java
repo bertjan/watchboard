@@ -62,6 +62,7 @@ public class CloudWatchDataSource {
 
         private WebDriver driver;
         private static final String MAXIMIZE_IMAGE_CONTENT = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAOCAYAAADwikbvAAAAHElEQVR42mNwcXH5Ty5mGHjNpIBRzSNUM92TJwDOA1GY0jTyxAAAAABJRU5ErkJggg==";
+        private static final int MAX_GRAPH_LOADING_TIME_IN_SECONDS = 30;
 
         public void run() {
             LOG.info("Starting CloudWatch data worker");
@@ -149,6 +150,8 @@ public class CloudWatchDataSource {
         }
 
         private void getReportScreenshot(String reportUrl, int width, int height, String filename) {
+            LOG.debug("Starting update of {}", filename);
+
             driver.manage().window().setSize(new Dimension(width, height));
             driver.get(reportUrl);
             doSleep(500);
@@ -158,10 +161,19 @@ public class CloudWatchDataSource {
             timezoneSelect.selectByIndex(timezoneSelect.getOptions().size() - 1);
 
             // Wait until loading is finished.
+            long loadingStart = System.currentTimeMillis();
             boolean loading = true;
             while (loading) {
                 if (!driver.findElement(By.id("gwt-debug-graphLoadingIndicator")).isDisplayed()) {
                     loading = false;
+                }
+
+                long waitingForMS = System.currentTimeMillis() - loadingStart;
+                LOG.debug("Waiting until {} is loaded (waited for {} ms now).", filename, waitingForMS);
+
+                if ((waitingForMS / 1000) > MAX_GRAPH_LOADING_TIME_IN_SECONDS) {
+                    LOG.error("Max waiting time of {} seconds for loading graph expired, giving up.", MAX_GRAPH_LOADING_TIME_IN_SECONDS);
+                    return;
                 }
                 doSleep(500);
             }
@@ -180,12 +192,13 @@ public class CloudWatchDataSource {
             try {
                 takeShot(graph, filename);
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.error("Error while taking screenshot:", e);
             }
 
         }
 
         private void takeShot(WebElement element, String fileName) throws IOException {
+            LOG.debug("Taking screenshot for {}.", fileName);
             File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
             // Crop the entire page screenshot to get only element screenshot.
             BufferedImage eleScreenshot = ImageIO.read(screenshot).getSubimage(
@@ -193,7 +206,7 @@ public class CloudWatchDataSource {
                     element.getSize().getWidth(), element.getSize().getHeight());
             ImageIO.write(eleScreenshot, "png", screenshot);
             FileUtils.copyFile(screenshot, new File(fileName));
-            LOG.info("Updated " + fileName + ".");
+            LOG.info("Updated {}.", fileName);
         }
 
         private void loginToAwsConsole(String username, String password) {
@@ -211,7 +224,7 @@ public class CloudWatchDataSource {
             try {
                 Thread.sleep(duration);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOG.error("Yawn... sleep interrupted: ", e);
             }
         }
     }

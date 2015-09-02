@@ -54,7 +54,7 @@ public class Config {
                     try {
                         instance = new Config();
                     } catch (IOException | ParseException e) {
-                        e.printStackTrace();
+                        LOG.error("Initializing config failed: ", e);
                     }
                 }
             }
