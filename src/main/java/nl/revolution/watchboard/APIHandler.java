@@ -129,7 +129,7 @@ public class APIHandler extends AbstractHandler {
         try {
             IOUtils.copy(new FileInputStream(imageFile), out);
         } catch (IOException e) {
-            LOG.error("Could not write image file: ", e);
+            LOG.error("Could not serve image file: ", e);
         }
         out.flush();
         out.close();
