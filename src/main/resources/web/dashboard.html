@@ -11,12 +11,51 @@
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
     }
 
+    function getUrlVars() {
+        var vars = [], hash;
+        var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+        for(var i = 0; i < hashes.length; i++)
+        {
+            hash = hashes[i].split('=');
+            vars.push(hash[0]);
+            vars[hash[0]] = hash[1];
+        }
+        return vars;
+    }
+
+
     $(document).ready(function() {
         var pathname = window.location.pathname;
         if (endsWith(pathname, '/')) {
             pathname = pathname.substring(0, pathname.length-1);
         }
         var dashboardId = pathname.substring(pathname.lastIndexOf('/')+1, pathname.length);
+
+        // Read number of columns from URL parameter.
+        var numberOfColumns = getUrlVars()["columns"];
+        if (numberOfColumns == undefined) {
+            numberOfColumns = 2;
+        }
+
+        // Render column selection.
+        maxNumberOfColumns = 4;
+        var columSelectionHTML = "Columns: ";
+        for (col = 1; col <= maxNumberOfColumns; col++) {
+            console.log('col params: ' + numberOfColumns);
+
+            // Add switch link.
+            if (col != numberOfColumns) {
+                columSelectionHTML += "<a href=\"?columns=" + col + "\">" + col + "</a>";
+            } else {
+                columSelectionHTML += col;
+            }
+
+            if (col != maxNumberOfColumns) {
+                columSelectionHTML += " | ";
+            }
+        }
+        $("#columSelection").html(columSelectionHTML);
+        var imageWidthPercentage = (100 / numberOfColumns) - 1;
 
         // Initial rendering.
         $.ajax({
@@ -30,7 +69,7 @@
                             "<a href=\""+ image.url + "\" target=\"_blank\">" +
                             "<img style=\"margin: 4px\" id=\""  + image.id + "\" " +
                             "data-lastmodified=\""+ image.lastModified +"\" " +
-                            "width=\"49%\" " +
+                            "width=\"" + imageWidthPercentage + "%\" " +
 //                            "height=\"" + image.height + "\" " +
                             "src=\"" + image.filename + "\"></a>");
                 }
@@ -67,6 +106,9 @@
     });
 </script>
 <a href=".."><img src="back-icon.png" style="height: 50px; position: absolute; top:-13px; left: -10px;"></a>
+<div style="position: absolute; top:5px; left: 35px; font-size: 14px">
+    <span id="columSelection"></span>
+</div>
 <div style="text-align:center"><span id="title" style="font-weight:bold"></span></div>
 <div id="images"></div>
 
