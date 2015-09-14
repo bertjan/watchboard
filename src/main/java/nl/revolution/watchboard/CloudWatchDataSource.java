@@ -66,20 +66,20 @@ public class CloudWatchDataSource {
 
         public void run() {
             LOG.info("Starting CloudWatch data worker");
-            Config config = Config.getInstance();
-            int backendUpdateIntervalSeconds = config.getInt(Config.BACKEND_UPDATE_INTERVAL_SECONDS);
 
             initWebDriver();
-            loginToAwsConsole(config.getString(Config.AWS_USERNAME), config.getString(Config.AWS_PASSWORD));
+            loginToAwsConsole(Config.getInstance().getString(Config.AWS_USERNAME), Config.getInstance().getString(Config.AWS_PASSWORD));
 
             LOG.info("Starting main update loop.");
             currentSessionStartTimestamp = System.currentTimeMillis();
 
             while (!stop) {
                 try {
-                    LOG.info("Updating data from AWS.");
+                    // Check for config file update.
+                    Config.getInstance().checkForConfigUpdate();
 
                     // Generate reports for all graphs for all dashboards.
+                    LOG.info("Updating data from AWS.");
                     Config.getInstance().getDashboards().stream().forEach(
                             dashboard -> dashboard.getGraphs().stream().forEach(graph -> {
                                         if (!stop) getReportScreenshot(graph.getUrl(),
@@ -92,6 +92,7 @@ public class CloudWatchDataSource {
                     if (stop) break;
 
                     // Wait before fetching next update.
+                    int backendUpdateIntervalSeconds = Config.getInstance().getInt(Config.BACKEND_UPDATE_INTERVAL_SECONDS);
                     LOG.debug("Sleeping {} seconds until next update.", backendUpdateIntervalSeconds);
                     doSleep(1000 * backendUpdateIntervalSeconds);
 

@@ -46,6 +46,7 @@ public class Config {
     private static Config instance;
     private JSONObject config;
     private List<Dashboard> dashboards;
+    private long configFileLastModified;
 
     public static Config getInstance() {
         if (instance == null) {
@@ -69,11 +70,33 @@ public class Config {
 
     }
 
+    public void checkForConfigUpdate() {
+        LOG.info("Checking for updated config file on disk.");
+        File configFile = getConfigFile();
+        long lastModifiedOnDisk = configFile.lastModified();
+
+        if (lastModifiedOnDisk != configFileLastModified) {
+            LOG.info("Newer config file exists on disk, reloading.");
+            try {
+                readConfigFromDisk();
+            } catch (IOException | ParseException ex) {
+                LOG.error("Error while reloading config file from disk: ", ex);
+            }
+        }
+    }
+
     private void readConfigFromDisk() throws IOException, ParseException {
-        String configFile = getCurrentPath() + "/config.json";
-        LOG.info("Using config file: {}", configFile);
-        String configStr = FileUtils.readFileToString(new File(configFile));
+        File configFile = getConfigFile();
+        LOG.info("Using config file: {}", configFile.getAbsolutePath());
+        configFileLastModified = configFile.lastModified();
+        String configStr = FileUtils.readFileToString(configFile);
         config = (JSONObject) new JSONParser().parse(new StringReader(configStr));
+        LOG.info("Config initialized.");
+    }
+
+    private File getConfigFile() {
+        String configFilePath = getCurrentPath() + "/config.json";
+        return new File(configFilePath);
     }
 
     private void checkConfig() {
