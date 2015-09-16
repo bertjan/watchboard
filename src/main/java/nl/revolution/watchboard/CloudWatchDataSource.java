@@ -74,45 +74,35 @@ public class CloudWatchDataSource {
             currentSessionStartTimestamp = System.currentTimeMillis();
 
             while (!stop) {
-                try {
-                    // Check for config file update.
-                    Config.getInstance().checkForConfigUpdate();
+                // Check for config file update.
+                Config.getInstance().checkForConfigUpdate();
 
-                    // Generate reports for all graphs for all dashboards.
-                    LOG.info("Updating data from AWS.");
-                    Config.getInstance().getDashboards().stream().forEach(
-                            dashboard -> dashboard.getGraphs().stream().forEach(graph -> {
-                                        if (!stop) getReportScreenshot(graph.getUrl(),
-                                                graph.getBrowserWidth(),
-                                                graph.getBrowserHeight(),
-                                                graph.getImagePath());
+                // Generate reports for all graphs for all dashboards.
+                LOG.info("Updating data from AWS.");
+                Config.getInstance().getDashboards().stream().forEach(
+                        dashboard -> dashboard.getGraphs().stream().forEach(graph -> {
+                                    if (!stop) getReportScreenshot(graph.getUrl(),
+                                            graph.getBrowserWidth(),
+                                            graph.getBrowserHeight(),
+                                            graph.getImagePath());
 
-                                    }
-                            ));
-                    if (stop) break;
+                                }
+                        ));
+                if (stop) break;
 
-                    // Wait before fetching next update.
-                    int backendUpdateIntervalSeconds = Config.getInstance().getInt(Config.BACKEND_UPDATE_INTERVAL_SECONDS);
-                    LOG.debug("Sleeping {} seconds until next update.", backendUpdateIntervalSeconds);
-                    doSleep(1000 * backendUpdateIntervalSeconds);
+                // Wait before fetching next update.
+                int backendUpdateIntervalSeconds = Config.getInstance().getInt(Config.BACKEND_UPDATE_INTERVAL_SECONDS);
+                LOG.debug("Sleeping {} seconds until next update.", backendUpdateIntervalSeconds);
+                doSleep(1000 * backendUpdateIntervalSeconds);
 
-                    // Re-start webdriver and re-login to AWS console every now and than to prevent session max duration issues.
-                    long currentSessionTimeInMinutes = ((System.currentTimeMillis() - currentSessionStartTimestamp) / 1000 / 60);
-                    LOG.info("currentSessionTimeInMinutes: " + currentSessionTimeInMinutes);
-                    if (currentSessionTimeInMinutes > Config.getInstance().getInt(Config.MAX_SESSION_DURATION_MINUTES)) {
-                        LOG.info("Max session duration exceeded, restarting browser.");
+                // Re-start webdriver and re-login to AWS console every now and than to prevent session max duration issues.
+                long currentSessionTimeInMinutes = ((System.currentTimeMillis() - currentSessionStartTimestamp) / 1000 / 60);
+                LOG.info("currentSessionTimeInMinutes: " + currentSessionTimeInMinutes);
+                if (currentSessionTimeInMinutes > Config.getInstance().getInt(Config.MAX_SESSION_DURATION_MINUTES)) {
+                    LOG.info("Max session duration exceeded, restarting browser.");
 
-                        // Restart; this also resets the session duration timer.
-                        restartWebDriverAndLoginToAWSConsole();
-                    }
-                } catch (WebDriverException e) {
-                    LOG.error("Caught WebDriverException: ", e);
-
-                    // Start over, webdriver/phantomjs might be broken.
+                    // Restart; this also resets the session duration timer.
                     restartWebDriverAndLoginToAWSConsole();
-
-                    // Loop will restart next; rate limit this a bit ;-)
-                    doSleep(5000);
                 }
             }
 
@@ -152,51 +142,55 @@ public class CloudWatchDataSource {
         }
 
         private void getReportScreenshot(String reportUrl, int width, int height, String filename) {
-            LOG.debug("Starting update of {}", filename);
-
-            driver.manage().window().setSize(new Dimension(width, height));
-            driver.get(reportUrl);
-            doSleep(500);
-
-            // Select bottom option in timezone select (local time).
-            Select timezoneSelect = new Select(driver.findElement(By.id("gwt-debug-timezoneList")));
-            timezoneSelect.selectByIndex(timezoneSelect.getOptions().size() - 1);
-
-            // Wait until loading is finished.
-            long loadingStart = System.currentTimeMillis();
-            while (true) {
-                if (!driver.findElement(By.id("gwt-debug-graphLoadingIndicator")).isDisplayed()) {
-                    long loadTimeMS = System.currentTimeMillis() - loadingStart;
-                    LOG.debug("Graph loaded in {} ms.", loadTimeMS);
-                    break;
-                }
-
-                long waitingForMS = System.currentTimeMillis() - loadingStart;
-                LOG.debug("Waiting until {} is loaded (waited for {} ms).", filename, waitingForMS);
-                if ((waitingForMS / 1000) > MAX_GRAPH_LOADING_TIME_IN_SECONDS) {
-                    LOG.error("Max waiting time of {} seconds for loading graph expired, giving up.", MAX_GRAPH_LOADING_TIME_IN_SECONDS);
-                    return;
-                }
-                doSleep(250);
-            }
-
-            List<WebElement> images = driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.className("gwt-Image"));
-
-            for (WebElement image : images) {
-                String imageSrc = image.getAttribute("src");
-                if (MAXIMIZE_IMAGE_CONTENT.equals(imageSrc)) {
-                    image.click();
-                    doSleep(100);
-                }
-            }
-
-            WebElement graph = driver.findElement(By.id("gwt-debug-graphContainer"));
             try {
-                takeShot(graph, filename);
-            } catch (IOException e) {
-                LOG.error("Error while taking screenshot:", e);
-            }
+                LOG.debug("Starting update of {}", filename);
 
+                driver.manage().window().setSize(new Dimension(width, height));
+                driver.get(reportUrl);
+                doSleep(500);
+
+                // Select bottom option in timezone select (local time).
+                Select timezoneSelect = new Select(driver.findElement(By.id("gwt-debug-timezoneList")));
+                timezoneSelect.selectByIndex(timezoneSelect.getOptions().size() - 1);
+
+                // Wait until loading is finished.
+                long loadingStart = System.currentTimeMillis();
+                while (true) {
+                    if (!driver.findElement(By.id("gwt-debug-graphLoadingIndicator")).isDisplayed()) {
+                        long loadTimeMS = System.currentTimeMillis() - loadingStart;
+                        LOG.debug("Graph loaded in {} ms.", loadTimeMS);
+                        break;
+                    }
+
+                    long waitingForMS = System.currentTimeMillis() - loadingStart;
+                    LOG.debug("Waiting until {} is loaded (waited for {} ms).", filename, waitingForMS);
+                    if ((waitingForMS / 1000) > MAX_GRAPH_LOADING_TIME_IN_SECONDS) {
+                        LOG.error("Max waiting time of {} seconds for loading graph expired, giving up.", MAX_GRAPH_LOADING_TIME_IN_SECONDS);
+                        return;
+                    }
+                    doSleep(250);
+                }
+
+                List<WebElement> images = driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.className("gwt-Image"));
+
+                for (WebElement image : images) {
+                    String imageSrc = image.getAttribute("src");
+                    if (MAXIMIZE_IMAGE_CONTENT.equals(imageSrc)) {
+                        image.click();
+                        doSleep(100);
+                    }
+                }
+
+                WebElement graph = driver.findElement(By.id("gwt-debug-graphContainer"));
+                try {
+                    takeShot(graph, filename);
+                } catch (IOException e) {
+                    LOG.error("Error while taking screenshot:", e);
+                }
+            } catch (WebDriverException e) {
+                LOG.error("Caught WebDriverException: ", e);
+                LOG.error("Error occurred while fetching report for {} ", filename);
+            }
         }
 
         private void takeShot(WebElement element, String fileName) throws IOException {
