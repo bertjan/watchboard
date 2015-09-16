@@ -25,9 +25,7 @@ public class APIHandler extends AbstractHandler {
 
     private static final String CONTENT_TYPE_JSON_UTF8 = "application/json;charset=utf-8";
     private static final String IMAGE_PATH = Config.getInstance().getString(Config.TEMP_PATH);
-
-    private static final String LOADING_ICON_PATH =
-            APIHandler.class.getClassLoader().getResource("web").toExternalForm().replace("file:", "") + "/loading.gif";
+    private static final String LOADING_ICON_PATH = "/web/loading.gif";
 
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
@@ -133,7 +131,7 @@ public class APIHandler extends AbstractHandler {
             IOUtils.copy(new FileInputStream(imageFile), out);
         } catch (IOException e) {
             LOG.error("Could not serve image file: {}. Serving loading icon.", imageFile);
-            IOUtils.copy(new FileInputStream(new File(LOADING_ICON_PATH)), out);
+            IOUtils.copy(getClass().getResourceAsStream(LOADING_ICON_PATH), out);
         }
         out.flush();
         out.close();
