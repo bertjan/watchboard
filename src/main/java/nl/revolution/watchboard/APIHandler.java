@@ -28,15 +28,23 @@ public class APIHandler extends AbstractHandler {
     private static final String LOADING_ICON_PATH = "/web/loading.gif";
     private static final Charset CHARSET_UTF_8 = Charset.forName("UTF-8");
 
-
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
 
-        final String contextRoot = Config.getInstance().getContextRoot();
+        final String contextRoot = Config.getInstance().getContextRoot() + "api/v1/";
         final String requestURI = request.getRequestURI();
 
         if (requestURI.equals(contextRoot + "dashboards")) {
             createDashboardsResponse(baseRequest, response);
+            return;
+        }
+
+        // TODO: remove
+        // Temporary support old context root for seamless migration to new api paths.
+        final String oldContextRoot = Config.getInstance().getContextRoot();
+        if (requestURI.startsWith(oldContextRoot + "status/")) {
+            System.out.println("fallback");
+            createStatusResponse(target, baseRequest, request, response, oldContextRoot);
             return;
         }
 
@@ -50,6 +58,12 @@ public class APIHandler extends AbstractHandler {
             return;
         }
 
+        if (requestURI.startsWith(contextRoot + "healthcheck")) {
+            createHealthCheckResponse(baseRequest, response);
+            return;
+        }
+
+        LOG.info("Could not match a request for requestURI {}, responding with 404.", requestURI);
         new NotFoundHandler().handle(target, baseRequest, request, response);
     }
 
@@ -83,7 +97,6 @@ public class APIHandler extends AbstractHandler {
     private void createStatusResponse(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response, String contextRoot) throws IOException, ServletException {
 
         String requestedDashboardId = baseRequest.getRequestURI().replaceAll(contextRoot + "status/", "");
-
         Optional<Dashboard> dashboardOpt = Config.getInstance().getDashboards().stream().filter(board -> board.getId().equals(requestedDashboardId)).findFirst();
         if (!dashboardOpt.isPresent()) {
             new NotFoundHandler().handle(target, baseRequest, request, response);
@@ -139,6 +152,26 @@ public class APIHandler extends AbstractHandler {
         out.close();
         LOG.info("Served " + filename + ".");
     }
+
+
+    private void createHealthCheckResponse(Request baseRequest, HttpServletResponse response) {
+        response.setContentType(CONTENT_TYPE_JSON_UTF8);
+        response.setStatus(HttpServletResponse.SC_OK);
+        baseRequest.setHandled(true);
+
+        JSONObject jsonResponse = new JSONObject();
+        jsonResponse.put("status", "all is well.");
+
+        try {
+            OutputStream out = response.getOutputStream();
+            out.write(jsonResponse.toJSONString().getBytes(CHARSET_UTF_8));
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            LOG.error("Error while creating healthcheck response: ", e);
+        }
+    }
+
 
 }
 

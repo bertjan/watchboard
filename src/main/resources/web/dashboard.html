@@ -59,7 +59,7 @@
 
         // Initial rendering.
         $.ajax({
-            url: '../status/' + dashboardId,
+            url: '../api/v1/status/' + dashboardId,
             success:function(data) {
                 appVersion = data.appVersion;
                 $("#title").text(data.title);
@@ -79,7 +79,7 @@
         // Periodic update.
         setInterval(function(){
             $.ajax({
-                url: '../status/' + dashboardId,
+                url: '../api/v1/status/' + dashboardId,
                 success:function(data){
                     if (appVersion != data.appVersion) {
                         // Force reload of page from server to keep front- and backend in sync.

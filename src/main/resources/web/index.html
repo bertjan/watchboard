@@ -8,7 +8,7 @@
     $(document).ready(function(){
         // Initial rendering.
         $.ajax({
-            url: 'dashboards',
+            url: 'api/v1/dashboards',
             success:function(data) {
 
                 data.dashboards.sort(function(dash1, dash2) {
