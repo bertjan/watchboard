@@ -149,9 +149,6 @@ public class CloudWatchDataSource {
 
                 // Select bottom option in timezone select (local time).
                 Select timezoneSelect = new Select(driver.findElement(By.id("gwt-debug-timezoneList")));
-                timezoneSelect.getOptions().stream().forEach(option -> {
-                    LOG.debug("Got select option: " + option.getText());
-                });
                 timezoneSelect.selectByIndex(timezoneSelect.getOptions().size() - 1);
 
                 // Wait until loading is finished.
