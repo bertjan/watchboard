@@ -22,10 +22,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
-
 public class CloudWatchDataSource {
 
     // TODO
@@ -138,7 +134,9 @@ public class CloudWatchDataSource {
         public void verifyTitle(String expectedTitle) {
             long timeout = 3;
             new WebDriverWait(driver, timeout).until(ExpectedConditions.titleIs(expectedTitle));
-            assertThat(driver.getTitle(), is(equalTo(expectedTitle)));
+            if (!expectedTitle.equals(driver.getTitle())) {
+                LOG.error("Expected title '{}' does not match actual title '{}'.", expectedTitle, driver.getTitle());
+            }
         }
 
         private void getReportScreenshot(String reportUrl, int width, int height, String filename) {

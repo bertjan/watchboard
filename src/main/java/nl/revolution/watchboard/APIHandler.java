@@ -1,7 +1,6 @@
 package nl.revolution.watchboard;
 
 import nl.revolution.watchboard.data.Dashboard;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -17,6 +16,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.Optional;
 
 public class APIHandler extends AbstractHandler {
@@ -26,6 +26,8 @@ public class APIHandler extends AbstractHandler {
     private static final String CONTENT_TYPE_JSON_UTF8 = "application/json;charset=utf-8";
     private static final String IMAGE_PATH = Config.getInstance().getString(Config.TEMP_PATH);
     private static final String LOADING_ICON_PATH = "/web/loading.gif";
+    private static final Charset CHARSET_UTF_8 = Charset.forName("UTF-8");
+
 
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
@@ -70,7 +72,7 @@ public class APIHandler extends AbstractHandler {
 
         try {
             OutputStream out = response.getOutputStream();
-            out.write(jsonResponse.toJSONString().getBytes(Charsets.UTF_8));
+            out.write(jsonResponse.toJSONString().getBytes(CHARSET_UTF_8));
             out.flush();
             out.close();
         } catch (IOException e) {
@@ -104,7 +106,7 @@ public class APIHandler extends AbstractHandler {
 
         try {
             OutputStream out = response.getOutputStream();
-            out.write(jsonResponse.toJSONString().getBytes(Charsets.UTF_8));
+            out.write(jsonResponse.toJSONString().getBytes(CHARSET_UTF_8));
             out.flush();
             out.close();
         } catch (IOException e) {
