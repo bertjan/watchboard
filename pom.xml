@@ -10,6 +10,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <nexus.host>https://enter.your.nexus.host.here</nexus.host>
     </properties>
 
     <dependencies>
@@ -106,5 +107,23 @@
             </plugin>
         </plugins>
     </build>
+
+    <distributionManagement>
+        <repository>
+            <id>nexus</id>
+            <name>Releases</name>
+            <layout>default</layout>
+            <uniqueVersion>false</uniqueVersion>
+            <url>${nexus.host}/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus</id>
+            <name>Snapshots</name>
+            <layout>default</layout>
+            <uniqueVersion>false</uniqueVersion>
+            <url>${nexus.host}/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
 
 </project>
