@@ -6,6 +6,7 @@
 
 <script type="text/javascript">
     var appVersion;
+    var lastAppRefresh = new Date().getTime();
 
     function endsWith(str, suffix) {
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
@@ -81,9 +82,11 @@
             $.ajax({
                 url: '../api/v1/status/' + dashboardId,
                 success:function(data){
-                    if (appVersion != data.appVersion) {
+                    // New backend version and last refresh was over 30 seconds ago (to throttle refreshes).
+                    if ((appVersion != data.appVersion) && (new Date().getTime() - lastAppRefresh > 30000)) {
                         // Force reload of page from server to keep front- and backend in sync.
                         location.reload(true);
+                        lastAppRefresh = new Date().getMilliseconds();
                     }
 
                     for (var i = 0; i < data.images.length; i++) {
