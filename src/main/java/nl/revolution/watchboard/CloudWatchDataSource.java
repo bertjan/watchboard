@@ -109,12 +109,16 @@ public class CloudWatchDataSource {
 
         private void initWebDriver() {
             LOG.info("Initializing PhantomJS webDriver.");
-            // driver = new FirefoxDriver();
-            WebDriverHttpParamsSetter.setSoTimeout(SOCKET_TIMEOUT_MS);
-            driver = new PhantomJSDriver();
-            driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
-            driver.manage().timeouts().setScriptTimeout(20, TimeUnit.SECONDS);
-            driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+            try {
+                // driver = new FirefoxDriver();
+                WebDriverHttpParamsSetter.setSoTimeout(SOCKET_TIMEOUT_MS);
+                driver = new PhantomJSDriver();
+                driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
+                driver.manage().timeouts().setScriptTimeout(20, TimeUnit.SECONDS);
+                driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                LOG.info("Error (re)initializing webDriver: ", e);
+            }
             doSleep(500);
         }
 
