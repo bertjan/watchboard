@@ -42,8 +42,6 @@
         maxNumberOfColumns = 4;
         var columSelectionHTML = "Columns: ";
         for (col = 1; col <= maxNumberOfColumns; col++) {
-            console.log('col params: ' + numberOfColumns);
-
             // Add switch link.
             if (col != numberOfColumns) {
                 columSelectionHTML += "<a href=\"?columns=" + col + "\">" + col + "</a>";
@@ -63,7 +61,7 @@
             url: '../api/v1/status/' + dashboardId,
             success:function(data) {
                 appVersion = data.appVersion;
-                $("#title").text(data.title);
+                $("#title").text(data.title); // TODO: add last update time
                 for (var i = 0; i < data.images.length; i++) {
                     image = data.images[i];
                     $("#images").html($("#images").html() +
