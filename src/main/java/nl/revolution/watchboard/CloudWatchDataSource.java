@@ -78,11 +78,16 @@ public class CloudWatchDataSource {
                 LOG.info("Updating data from AWS.");
                 Config.getInstance().getDashboards().stream().forEach(
                         dashboard -> dashboard.getGraphs().stream().forEach(graph -> {
-                                    if (!stop) getReportScreenshot(graph.getUrl(),
-                                            graph.getBrowserWidth(),
-                                            graph.getBrowserHeight(),
-                                            graph.getImagePath());
-
+                                    if (!stop) {
+                                        boolean executedSuccessfully = getReportScreenshot(graph.getUrl(),
+                                                graph.getBrowserWidth(),
+                                                graph.getBrowserHeight(),
+                                                graph.getImagePath());
+                                        if (!executedSuccessfully) {
+                                            // Something went wrong; start over.
+                                            restartWebDriverAndLoginToAWSConsole();
+                                        }
+                                    }
                                 }
                         ));
                 if (stop) break;
@@ -145,7 +150,7 @@ public class CloudWatchDataSource {
             }
         }
 
-        private void getReportScreenshot(String reportUrl, int width, int height, String filename) {
+        private boolean getReportScreenshot(String reportUrl, int width, int height, String filename) {
             try {
                 LOG.debug("Starting update of {}", filename);
 
@@ -170,7 +175,7 @@ public class CloudWatchDataSource {
                     LOG.debug("Waiting until {} is loaded (waited for {} ms).", filename, waitingForMS);
                     if ((waitingForMS / 1000) > MAX_GRAPH_LOADING_TIME_IN_SECONDS) {
                         LOG.error("Max waiting time of {} seconds for loading graph expired, giving up.", MAX_GRAPH_LOADING_TIME_IN_SECONDS);
-                        return;
+                        return false;
                     }
                     doSleep(250);
                 }
@@ -190,11 +195,14 @@ public class CloudWatchDataSource {
                     takeShot(graph, filename);
                 } catch (IOException e) {
                     LOG.error("Error while taking screenshot:", e);
+                    return false;
                 }
             } catch (WebDriverException e) {
                 LOG.error("Caught WebDriverException: ", e);
                 LOG.error("Error occurred while fetching report for {} ", filename);
+                return false;
             }
+            return true;
         }
 
         private void takeShot(WebElement element, String fileName) throws IOException {
