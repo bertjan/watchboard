@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -64,10 +65,16 @@ public class Config {
     }
 
     public Config() throws IOException, ParseException {
+        intializeConfig();
+    }
+
+    public void intializeConfig() throws IOException, ParseException {
         readConfigFromDisk();
         checkConfig();
         parseDashboards();
 
+        LOG.info("Config initialized. Configured {} dashboards with a total of {} graphs.",
+                dashboards.size(), dashboards.stream().map(Dashboard::getGraphs).flatMap(Collection::stream).count());
     }
 
     public void checkForConfigUpdate() {
@@ -78,7 +85,7 @@ public class Config {
         if (lastModifiedOnDisk != configFileLastModified) {
             LOG.info("Newer config file exists on disk, reloading.");
             try {
-                readConfigFromDisk();
+                intializeConfig();
             } catch (IOException | ParseException ex) {
                 LOG.error("Error while reloading config file from disk: ", ex);
             }
@@ -91,7 +98,6 @@ public class Config {
         configFileLastModified = configFile.lastModified();
         String configStr = FileUtils.readFileToString(configFile);
         config = (JSONObject) new JSONParser().parse(new StringReader(configStr));
-        LOG.info("Config initialized.");
     }
 
     private File getConfigFile() {
