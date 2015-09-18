@@ -39,15 +39,6 @@ public class APIHandler extends AbstractHandler {
             return;
         }
 
-        // TODO: remove
-        // Temporary support old context root for seamless migration to new api paths.
-        final String oldContextRoot = Config.getInstance().getContextRoot();
-        if (requestURI.startsWith(oldContextRoot + "status/")) {
-            System.out.println("fallback");
-            createStatusResponse(target, baseRequest, request, response, oldContextRoot);
-            return;
-        }
-
         if (requestURI.startsWith(contextRoot + "status/")) {
             createStatusResponse(target, baseRequest, request, response, contextRoot);
             return;
