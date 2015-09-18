@@ -94,7 +94,7 @@
             </exclusions>
         </dependency>
 
-
+        <!-- Test dependencies. -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

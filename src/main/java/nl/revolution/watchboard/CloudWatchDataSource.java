@@ -29,6 +29,7 @@ public class CloudWatchDataSource {
     // - add tests
 
     private static final Logger LOG = LoggerFactory.getLogger(CloudWatchDataSource.class);
+    private static final int SOCKET_TIMEOUT_MS = 60 * 1000;
 
     private long currentSessionStartTimestamp;
 
@@ -107,8 +108,9 @@ public class CloudWatchDataSource {
         }
 
         private void initWebDriver() {
-            LOG.info("Initializing PhantomJS webDriver");
+            LOG.info("Initializing PhantomJS webDriver.");
             // driver = new FirefoxDriver();
+            WebDriverHttpParamsSetter.setSoTimeout(SOCKET_TIMEOUT_MS);
             driver = new PhantomJSDriver();
             driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
             driver.manage().timeouts().setScriptTimeout(20, TimeUnit.SECONDS);
@@ -156,7 +158,7 @@ public class CloudWatchDataSource {
                 while (true) {
                     if (!driver.findElement(By.id("gwt-debug-graphLoadingIndicator")).isDisplayed()) {
                         long loadTimeMS = System.currentTimeMillis() - loadingStart;
-                        LOG.debug("Graph loaded in {} ms.", loadTimeMS);
+                        LOG.debug("Graph {} loaded in {} ms.", filename, loadTimeMS);
                         break;
                     }
 
@@ -192,7 +194,7 @@ public class CloudWatchDataSource {
         }
 
         private void takeShot(WebElement element, String fileName) throws IOException {
-            LOG.debug("Taking screenshot for {}.", fileName);
+            // LOG.debug("Taking screenshot for {}.", fileName);
             File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
             // Crop the entire page screenshot to get only element screenshot.
             BufferedImage eleScreenshot = ImageIO.read(screenshot).getSubimage(
