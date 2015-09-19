@@ -123,6 +123,10 @@ public class CloudWatchDataSource {
                 driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
             } catch (Exception e) {
                 LOG.info("Error (re)initializing webDriver: ", e);
+                LOG.info("Sleeping 1 second and trying again.");
+                doSleep(1000);
+                initWebDriver();
+                return;
             }
             doSleep(500);
         }
