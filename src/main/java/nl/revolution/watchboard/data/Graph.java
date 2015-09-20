@@ -6,6 +6,14 @@ import java.io.File;
 
 public class Graph {
 
+    public static final String ID = "id";
+    public static final String URL = "url";
+    public static final String FILENAME = "filename";
+    public static final String LAST_MODIFIED = "lastModified";
+    public static final String HEIGHT = "height";
+    public static final String IMAGES_PATH = "images/";
+    public static final String IMAGE_SUFFIX = ".png";
+
     private String url;
     private String id;
     private String imagePath;
@@ -15,12 +23,16 @@ public class Graph {
 
     public JSONObject toJSON(String contextRoot) {
         JSONObject json = new JSONObject();
-        json.put("id", id);
-        json.put("url", url);
-        json.put("filename", contextRoot + "images/" + id + ".png");
-        json.put("lastModified", new File(imagePath).lastModified());
-        json.put("height", imageHeight);
+        json.put(ID, id);
+        json.put(URL, url);
+        json.put(FILENAME, contextRoot + IMAGES_PATH + id + IMAGE_SUFFIX);
+        json.put(LAST_MODIFIED, determineLastModified());
+        json.put(HEIGHT, imageHeight);
         return json;
+    }
+
+    protected long determineLastModified() {
+        return new File(imagePath).lastModified();
     }
 
     public String getUrl() {

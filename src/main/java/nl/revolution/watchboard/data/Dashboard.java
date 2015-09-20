@@ -28,8 +28,4 @@ public class Dashboard {
         return graphs;
     }
 
-    public void setGraphs(List<Graph> graphs) {
-        this.graphs = graphs;
-    }
-
 }
