@@ -30,6 +30,7 @@ public class CloudWatchDataSource {
 
     private static final Logger LOG = LoggerFactory.getLogger(CloudWatchDataSource.class);
     private static final int SOCKET_TIMEOUT_MS = 60 * 1000;
+    public static final int WEBDRIVER_TIMEOUT_SECONDS = 60;
 
     private long currentSessionStartTimestamp;
 
@@ -118,9 +119,9 @@ public class CloudWatchDataSource {
                 // driver = new FirefoxDriver();
                 WebDriverHttpParamsSetter.setSoTimeout(SOCKET_TIMEOUT_MS);
                 driver = new PhantomJSDriver();
-                driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
-                driver.manage().timeouts().setScriptTimeout(30, TimeUnit.SECONDS);
-                driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+                driver.manage().timeouts().pageLoadTimeout(WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                driver.manage().timeouts().setScriptTimeout(WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                driver.manage().timeouts().implicitlyWait(WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             } catch (Exception e) {
                 LOG.error("Error (re)initializing webDriver: ", e);
                 LOG.info("Sleeping 10 seconds and trying again.");
