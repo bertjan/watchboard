@@ -1,8 +1,73 @@
 <html>
 <head>
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <style type="text/css">
+        html, body, div, span {
+            border: 0 none;
+            font-size: 100%;
+            margin: 0;
+            outline: 0 none;
+            padding: 0;
+        }
+
+        #topBar {
+            background-color: #666666;
+            padding-bottom: 4px;
+            color: #ffffff;
+            font-family: Tahoma, Geneva, sans-serif;
+        }
+
+        #columnSelection {
+            font-size: 12px;
+            position: relative;
+            left: 14px;
+            top: -1px;
+            z-index: 10;
+        }
+
+        #columnSelection a {
+            color: white;
+        }
+
+        #back img {
+            height: 15px;
+            position:relative;
+            left: 3px;
+            top: 1px;
+            z-index: 10;
+        }
+
+        #lastUpdatedWrapper {
+            font-size: 12px;
+            position:absolute;
+            top: 6px;
+            right: 5px;
+            font-style: italic;
+        }
+
+        #title {
+            font-weight: bold;
+            font-size: 18px;
+            width: 100%;
+            text-align: center;
+            display: block;
+            position: absolute;
+            top: 1px;
+        }
+
+        #logo {
+            font-size: 18px;
+            position: relative;
+            left: 7px;
+            top: 1px;
+            padding-left: 10px;
+            padding-right: 10px;
+            border-left: 1px solid white;
+            border-right: 1px solid white;
+        }
+    </style>
 </head>
-<body style="margin: 2px; padding: 0px;">
+<body>
 
 <script type="text/javascript">
     var appVersion;
@@ -41,20 +106,20 @@
 
         // Render column selection.
         maxNumberOfColumns = 4;
-        var columSelectionHTML = "Columns: ";
+        var columnSelectionHTML = "Columns: ";
         for (col = 1; col <= maxNumberOfColumns; col++) {
             // Add switch link.
             if (col != numberOfColumns) {
-                columSelectionHTML += "<a href=\"?columns=" + col + "\">" + col + "</a>";
+                columnSelectionHTML += "<a href=\"?columns=" + col + "\">" + col + "</a>";
             } else {
-                columSelectionHTML += col;
+                columnSelectionHTML += col;
             }
 
             if (col != maxNumberOfColumns) {
-                columSelectionHTML += " | ";
+                columnSelectionHTML += " | ";
             }
         }
-        $("#columSelection").html(columSelectionHTML);
+        $("#columnSelection").html(columnSelectionHTML);
         var imageWidthPercentage = (100 / numberOfColumns) - 1;
 
         // Initial rendering.
@@ -112,16 +177,21 @@
 
     });
 </script>
-<a href=".."><img src="back-icon.png" style="height: 50px; position: absolute; top:-13px; left: -10px;"></a>
-<div style="position: absolute; top:5px; left: 35px; font-size: 14px">
-    <span id="columSelection"></span>
+<div id="topBar">
+    <!-- position: absolute; top:-13px; left: -10px; -->
+    <span id="back">
+        <a href=".."><img src="back-icon.png" id="backIcon"></a>
+    </span>
+    <span id="logo">Watchboard</span>
+    <span id="columnSelection"></span>
+    <span>
+        <span id="title"></span>
+    </span>
+    <div id="lastUpdatedWrapper">
+        Last updated: <span id="lastUpdated">(never)</span>
+    </div>
 </div>
-<div style="text-align:center">
-    <span id="title" style="font-weight:bold"></span>
-</div>
-<div style="font-size: 13px; position:absolute; top: 6px; right: 5px">
-    Last updated: <span id="lastUpdated">(never)</span>
-</div>
+
 <div id="images"></div>
 
 </body>

@@ -15,6 +15,7 @@ public class WebServer {
     public Server createServer() {
         int httpPort = Config.getInstance().getInt(Config.HTTP_PORT);
         String webDir = this.getClass().getClassLoader().getResource("web").toExternalForm();
+        // String webDir = "/Users/bertjan/IdeaProjects/sandbox/watchboard/src/main/resources/web";
         HandlerList webHandlers = new HandlerList();
 
         // Resource handler for initial request (index.html).
