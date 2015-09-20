@@ -122,7 +122,7 @@ public class CloudWatchDataSource {
                 driver.manage().timeouts().setScriptTimeout(20, TimeUnit.SECONDS);
                 driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
             } catch (Exception e) {
-                LOG.info("Error (re)initializing webDriver: ", e);
+                LOG.error("Error (re)initializing webDriver: ", e);
                 LOG.info("Sleeping 1 second and trying again.");
                 doSleep(1000);
                 initWebDriver();
@@ -223,13 +223,21 @@ public class CloudWatchDataSource {
 
         private void loginToAwsConsole(String username, String password) {
             LOG.info("Logging in to AWS console.");
-            driver.get(Config.getInstance().getString(Config.AWS_SIGNIN_URL));
-            doSleep(500);
-            driver.get("https://console.aws.amazon.com/console/home");
-            verifyTitle("Amazon Web Services Sign-In");
-            driver.findElement(By.id("username")).sendKeys(username);
-            driver.findElement(By.id("password")).sendKeys(password);
-            driver.findElement(By.id("signin_button")).click();
+            try {
+                driver.get(Config.getInstance().getString(Config.AWS_SIGNIN_URL));
+                doSleep(500);
+                driver.get("https://console.aws.amazon.com/console/home");
+                verifyTitle("Amazon Web Services Sign-In");
+                driver.findElement(By.id("username")).sendKeys(username);
+                driver.findElement(By.id("password")).sendKeys(password);
+                driver.findElement(By.id("signin_button")).click();
+            } catch (Exception e) {
+                LOG.error("Error logging in to AWS console: ", e);
+                LOG.info("Sleeping 1 second and trying again.");
+                doSleep(1000);
+                loginToAwsConsole(username, password);
+                return;
+            }
         }
 
         private void doSleep(long duration) {
