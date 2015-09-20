@@ -118,13 +118,13 @@ public class CloudWatchDataSource {
                 // driver = new FirefoxDriver();
                 WebDriverHttpParamsSetter.setSoTimeout(SOCKET_TIMEOUT_MS);
                 driver = new PhantomJSDriver();
-                driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
-                driver.manage().timeouts().setScriptTimeout(20, TimeUnit.SECONDS);
-                driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+                driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
+                driver.manage().timeouts().setScriptTimeout(30, TimeUnit.SECONDS);
+                driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
             } catch (Exception e) {
                 LOG.error("Error (re)initializing webDriver: ", e);
-                LOG.info("Sleeping 1 second and trying again.");
-                doSleep(1000);
+                LOG.info("Sleeping 10 seconds and trying again.");
+                doSleep(10000);
                 initWebDriver();
                 return;
             }
@@ -233,8 +233,8 @@ public class CloudWatchDataSource {
                 driver.findElement(By.id("signin_button")).click();
             } catch (Exception e) {
                 LOG.error("Error logging in to AWS console: ", e);
-                LOG.info("Sleeping 1 second and trying again.");
-                doSleep(1000);
+                LOG.info("Sleeping 10 seconds and trying again.");
+                doSleep(10000);
                 loginToAwsConsole(username, password);
                 return;
             }

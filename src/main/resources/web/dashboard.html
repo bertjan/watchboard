@@ -7,6 +7,7 @@
 <script type="text/javascript">
     var appVersion;
     var lastAppRefresh = new Date().getTime();
+    var lastUpdated = 0;
 
     function endsWith(str, suffix) {
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
@@ -61,7 +62,7 @@
             url: '../api/v1/status/' + dashboardId,
             success:function(data) {
                 appVersion = data.appVersion;
-                $("#title").text(data.title); // TODO: add last update time
+                $("#title").text(data.title);
                 for (var i = 0; i < data.images.length; i++) {
                     image = data.images[i];
                     $("#images").html($("#images").html() +
@@ -92,12 +93,17 @@
                         imageElement=$('img#'+image.id)
                         storedLastModified=imageElement.attr("data-lastmodified");
                         newLastModified=image.lastModified;
-
                         if (newLastModified != storedLastModified) {
                             // refresh.
                             imageElement.attr('data-lastmodified', image.lastModified);
                             imageElement.attr('src', image.filename + '?' + image.lastModified);
                         }
+                        if (newLastModified > lastUpdated) {
+                            lastUpdated = newLastModified;
+                            $("#lastUpdated").text(new Date(lastUpdated));
+
+                        }
+
                     }
                 }
             });
@@ -110,7 +116,12 @@
 <div style="position: absolute; top:5px; left: 35px; font-size: 14px">
     <span id="columSelection"></span>
 </div>
-<div style="text-align:center"><span id="title" style="font-weight:bold"></span></div>
+<div style="text-align:center">
+    <span id="title" style="font-weight:bold"></span>
+</div>
+<div style="font-size: 13px; position:absolute; top: 6px; right: 5px">
+    Last updated: <span id="lastUpdated"></span>
+</div>
 <div id="images"></div>
 
 </body>
