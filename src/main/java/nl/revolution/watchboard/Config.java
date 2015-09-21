@@ -72,6 +72,7 @@ public class Config {
         readConfigFromDisk();
         checkConfig();
         parseDashboards();
+        configFileLastModified = getConfigFile().lastModified();
 
         LOG.info("Config initialized. Configured {} dashboards with a total of {} graphs.",
                 dashboards.size(), dashboards.stream().map(Dashboard::getGraphs).flatMap(Collection::stream).count());
@@ -95,7 +96,6 @@ public class Config {
     private void readConfigFromDisk() throws IOException, ParseException {
         File configFile = getConfigFile();
         LOG.info("Using config file: {}", configFile.getAbsolutePath());
-        configFileLastModified = configFile.lastModified();
         String configStr = FileUtils.readFileToString(configFile);
         config = (JSONObject) new JSONParser().parse(new StringReader(configStr));
     }
