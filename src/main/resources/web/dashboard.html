@@ -1,71 +1,8 @@
 <html>
 <head>
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-    <style type="text/css">
-        html, body, div, span {
-            border: 0 none;
-            font-size: 100%;
-            margin: 0;
-            outline: 0 none;
-            padding: 0;
-        }
-
-        #topBar {
-            background-color: #555555;
-            padding-bottom: 4px;
-            color: #ffffff;
-            font-family: Tahoma, Geneva, sans-serif;
-        }
-
-        #columnSelection {
-            font-size: 12px;
-            position: relative;
-            left: 14px;
-            top: -1px;
-            z-index: 10;
-        }
-
-        #columnSelection a {
-            color: white;
-        }
-
-        #back img {
-            height: 15px;
-            position:relative;
-            left: 3px;
-            top: 1px;
-            z-index: 10;
-        }
-
-        #lastUpdatedWrapper {
-            font-size: 12px;
-            position:absolute;
-            top: 6px;
-            right: 5px;
-            font-style: italic;
-        }
-
-        #title {
-            font-weight: bold;
-            font-size: 18px;
-            width: 100%;
-            text-align: center;
-            display: block;
-            position: absolute;
-            top: 1px;
-        }
-
-        #logo {
-            font-size: 18px;
-            position: relative;
-            left: 7px;
-            top: 1px;
-            padding-left: 10px;
-            padding-right: 10px;
-            border-left: 1px solid white;
-            border-right: 1px solid white;
-        }
-    </style>
+    <link rel="stylesheet" href="watchboard.css" type="text/css">
+    <script type="text/javascript" src="watchboard.js"></script>
 </head>
 <body>
 
@@ -74,29 +11,12 @@
     var lastAppRefresh = new Date().getTime();
     var lastUpdated = 0;
 
-    function endsWith(str, suffix) {
-        return str.indexOf(suffix, str.length - suffix.length) !== -1;
-    }
-
-    function getUrlVars() {
-        var vars = [], hash;
-        var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-        for(var i = 0; i < hashes.length; i++)
-        {
-            hash = hashes[i].split('=');
-            vars.push(hash[0]);
-            vars[hash[0]] = hash[1];
-        }
-        return vars;
-    }
-
-
-    $(document).ready(function() {
+    $(document).ready(function () {
         var pathname = window.location.pathname;
         if (endsWith(pathname, '/')) {
-            pathname = pathname.substring(0, pathname.length-1);
+            pathname = pathname.substring(0, pathname.length - 1);
         }
-        var dashboardId = pathname.substring(pathname.lastIndexOf('/')+1, pathname.length);
+        var dashboardId = pathname.substring(pathname.lastIndexOf('/') + 1, pathname.length);
 
         // Read number of columns from URL parameter.
         var numberOfColumns = getUrlVars()["columns"];
@@ -125,27 +45,26 @@
         // Initial rendering.
         $.ajax({
             url: '../api/v1/status/' + dashboardId,
-            success:function(data) {
+            success: function (data) {
                 appVersion = data.appVersion;
                 $("#title").text(data.title);
                 for (var i = 0; i < data.images.length; i++) {
                     image = data.images[i];
                     $("#images").html($("#images").html() +
-                            "<a href=\""+ image.url + "\" target=\"_blank\">" +
-                            "<img style=\"margin: 4px\" id=\""  + image.id + "\" " +
-                            "data-lastmodified=\""+ image.lastModified +"\" " +
+                            "<a href=\"" + image.url + "\" target=\"_blank\">" +
+                            "<img style=\"margin: 4px\" id=\"" + image.id + "\" " +
+                            "data-lastmodified=\"" + image.lastModified + "\" " +
                             "width=\"" + imageWidthPercentage + "%\" " +
-//                            "height=\"" + image.height + "\" " +
                             "src=\"" + image.filename + "\"></a>");
                 }
             }
         });
 
         // Periodic update.
-        setInterval(function(){
+        setInterval(function () {
             $.ajax({
                 url: '../api/v1/status/' + dashboardId,
-                success:function(data){
+                success: function (data) {
                     // New backend version and last refresh was over 30 seconds ago (to throttle refreshes).
                     if ((appVersion != data.appVersion) && (new Date().getTime() - lastAppRefresh > 30000)) {
                         // Force reload of page from server to keep front- and backend in sync.
@@ -155,9 +74,9 @@
 
                     for (var i = 0; i < data.images.length; i++) {
                         image = data.images[i];
-                        imageElement=$('img#'+image.id)
-                        storedLastModified=imageElement.attr("data-lastmodified");
-                        newLastModified=image.lastModified;
+                        imageElement = $('img#' + image.id)
+                        storedLastModified = imageElement.attr("data-lastmodified");
+                        newLastModified = image.lastModified;
                         if (newLastModified != storedLastModified) {
                             // refresh.
                             imageElement.attr('data-lastmodified', image.lastModified);
@@ -178,11 +97,14 @@
     });
 </script>
 <div id="topBar">
-    <!-- position: absolute; top:-13px; left: -10px; -->
     <span id="back">
         <a href=".."><img src="back-icon.png" id="backIcon"></a>
     </span>
-    <span id="logo">Watchboard</span>
+        <span id="logo" class="logo-bordered">
+            <a href="https://github.com/bertjan/watchboard">
+            Watchboard
+            </a>
+        </span>
     <span id="columnSelection"></span>
     <span>
         <span id="title"></span>

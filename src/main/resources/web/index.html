@@ -1,6 +1,8 @@
 <html>
 <head>
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <link rel="stylesheet" href="watchboard.css" type="text/css">
+    <script type="text/javascript" src="watchboard.js"></script>
 </head>
 <body>
 
@@ -15,11 +17,13 @@
                     return dash1.id.localeCompare(dash2.id);
                 });
 
+                $("#dashboards").html("<ul>");
                 for (var i = 0; i < data.dashboards.length; i++) {
                     dashboard = data.dashboards[i];
                     $("#dashboards").html($("#dashboards").html() +
-                            "<a href=\""+ dashboard.id + "\">" + dashboard.title + "</a><br/>");
+                            "<li><a href=\""+ dashboard.id + "\">" + dashboard.title + "</a></li>");
                 }
+                $("#dashboards").html($("#dashboards").html() + "</ul>")
             },
             error:function(jqXHR, textStatus,errorThrown) {
                 $("#dashboards").text("No dashboards found.");
@@ -27,8 +31,21 @@
         });
     });
 </script>
+
+<div id="topBar">
+     <span id="logo">
+    <a href="https://github.com/bertjan/watchboard">Watchboard</a>
+     </span>
+    </a>
+    <span id="titleContainer">
+        <span id="title">Dashboards</span>
+    </span>
+</div>
+
+<div id="dashboardSelection">
 <h1>Dashboards</h1>
 <div id="dashboards"></div>
+</div>
 
 </body>
 </html>

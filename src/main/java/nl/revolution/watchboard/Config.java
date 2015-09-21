@@ -68,7 +68,7 @@ public class Config {
         intializeConfig();
     }
 
-    public void intializeConfig() throws IOException, ParseException {
+    private void intializeConfig() throws IOException, ParseException {
         readConfigFromDisk();
         checkConfig();
         parseDashboards();
