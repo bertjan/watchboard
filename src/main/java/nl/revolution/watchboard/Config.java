@@ -183,4 +183,8 @@ public class Config {
         return contextRoot + "/";
     }
 
+    public long getTSLastUpdate() {
+        return configFileLastModified;
+    }
+
 }

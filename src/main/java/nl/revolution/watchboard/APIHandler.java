@@ -101,6 +101,8 @@ public class APIHandler extends AbstractHandler {
 
         JSONObject jsonResponse = new JSONObject();
         jsonResponse.put("appVersion", DashboardServer.getAppVersion());
+        jsonResponse.put("configLastUpdated", Config.getInstance().getTSLastUpdate());
+
         jsonResponse.put("id", dashboard.getId());
         jsonResponse.put("title", dashboard.getTitle());
 

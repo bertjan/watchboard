@@ -8,6 +8,7 @@
 
 <script type="text/javascript">
     var appVersion;
+    var configLastUpdated;
     var lastAppRefresh = new Date().getTime();
     var lastUpdated = 0;
 
@@ -47,6 +48,7 @@
             url: '../api/v1/status/' + dashboardId,
             success: function (data) {
                 appVersion = data.appVersion;
+                configLastUpdated = data.configLastUpdated;
                 $("#title").text(data.title);
                 for (var i = 0; i < data.images.length; i++) {
                     image = data.images[i];
@@ -65,8 +67,10 @@
             $.ajax({
                 url: '../api/v1/status/' + dashboardId,
                 success: function (data) {
-                    // New backend version and last refresh was over 30 seconds ago (to throttle refreshes).
-                    if ((appVersion != data.appVersion) && (new Date().getTime() - lastAppRefresh > 30000)) {
+                    // (New backend version OR config update)
+                    // AND last refresh was over 30 seconds ago (to throttle refreshes).
+                    if (((appVersion != data.appVersion) ||  (configLastUpdated != data.configLastUpdated))
+                            && (new Date().getTime() - lastAppRefresh > 30000)) {
                         // Force reload of page from server to keep front- and backend in sync.
                         location.reload(true);
                         lastAppRefresh = new Date().getMilliseconds();
