@@ -2,13 +2,19 @@ function endsWith(str, suffix) {
   return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
-function getUrlVars() {
+function getHashParam() {
   var vars = [], hash;
-  var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+  var hashes = location.hash.split('|'); //window.location.href.split('#')[0].slice(window.location.href.indexOf('?') + 1).split('&');
   for (var i = 0; i < hashes.length; i++) {
     hash = hashes[i].split('=');
-    vars.push(hash[0]);
-    vars[hash[0]] = hash[1];
+    key = hash[0];
+    value = hash[1];
+
+    if (key.charAt(0) === '#' ) {
+      key = key.substring(1);
+    }
+    vars.push(key);
+    vars[key] = value;
   }
   return vars;
 }

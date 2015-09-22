@@ -76,3 +76,6 @@ html, body, div, span {
 #dashboardSelection {
     padding-left: 10px;
 }
+
+#images { list-style-type: none; margin: 0; padding: 0  }
+#images li { float: left; text-align: left; margin-right: 4px;}

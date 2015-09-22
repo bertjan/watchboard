@@ -1,6 +1,8 @@
 <html>
 <head>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
     <link rel="stylesheet" href="watchboard.css" type="text/css">
     <script type="text/javascript" src="watchboard.js"></script>
 </head>
@@ -11,6 +13,27 @@
     var configLastUpdated;
     var lastAppRefresh = new Date().getTime();
     var lastUpdated = 0;
+    var numberOfColumns;
+
+    function setURLHash() {
+        var imageOrder = $('#images').children('li').map(function(){
+            return $(this).find("img").attr('id')
+        }).get();
+        location.hash = 'columns=' + numberOfColumns + "|" + "imageOrder=" + imageOrder;
+    }
+
+
+    function setColumns(numCols) {
+        numberOfColumns = numCols;
+        setURLHash();
+        refreshPage();
+    }
+
+    function refreshPage() {
+        location.reload(true);
+        lastAppRefresh = new Date().getMilliseconds();
+    }
+
 
     $(document).ready(function () {
         var pathname = window.location.pathname;
@@ -20,7 +43,7 @@
         var dashboardId = pathname.substring(pathname.lastIndexOf('/') + 1, pathname.length);
 
         // Read number of columns from URL parameter.
-        var numberOfColumns = getUrlVars()["columns"];
+        numberOfColumns = getHashParam()["columns"];
         if (numberOfColumns == undefined) {
             numberOfColumns = 2;
         }
@@ -31,7 +54,7 @@
         for (col = 1; col <= maxNumberOfColumns; col++) {
             // Add switch link.
             if (col != numberOfColumns) {
-                columnSelectionHTML += "<a href=\"?columns=" + col + "\">" + col + "</a>";
+                columnSelectionHTML += "<a href=\"#\" onClick=\"setColumns(" + col + "); event.preventDefault();\">" + col + "</a>";
             } else {
                 columnSelectionHTML += col;
             }
@@ -50,15 +73,30 @@
                 appVersion = data.appVersion;
                 configLastUpdated = data.configLastUpdated;
                 $("#title").text(data.title);
+
+                // Sort images based on order in url hash.
+                var imageOrder = getHashParam()["imageOrder"];
+                if(imageOrder) {
+                    data.images.sort(function (a, b) {
+                        return imageOrder.indexOf(a.id) < imageOrder.indexOf(b.id) ? -1 : 1;
+                    });
+                }
+
+                $("#images").html("<ul>");
                 for (var i = 0; i < data.images.length; i++) {
                     image = data.images[i];
                     $("#images").html($("#images").html() +
-                            "<a href=\"" + image.url + "\" target=\"_blank\">" +
-                            "<img style=\"margin: 4px\" id=\"" + image.id + "\" " +
+                            "<li class=\"ui-state-default\" style=\"width: " + imageWidthPercentage + "%\"><a href=\"" + image.url + "\" target=\"_blank\">" +
+                            "<img style=\"width: 100%\" id=\"" + image.id + "\" " +
                             "data-lastmodified=\"" + image.lastModified + "\" " +
-                            "width=\"" + imageWidthPercentage + "%\" " +
-                            "src=\"" + image.filename + "\"></a>");
+                            "src=\"" + image.filename + "\"></a></li>");
                 }
+                $("#images").html($("#images").html() + "</ul>");
+                $("#images").sortable({
+                    deactivate: function( event, ui ) {
+                        setURLHash();
+                    }
+                });
             }
         });
 
@@ -72,8 +110,7 @@
                     if (((appVersion != data.appVersion) ||  (configLastUpdated != data.configLastUpdated))
                             && (new Date().getTime() - lastAppRefresh > 30000)) {
                         // Force reload of page from server to keep front- and backend in sync.
-                        location.reload(true);
-                        lastAppRefresh = new Date().getMilliseconds();
+                        refreshPage();
                     }
 
                     for (var i = 0; i < data.images.length; i++) {
@@ -89,9 +126,7 @@
                         if (newLastModified > lastUpdated) {
                             lastUpdated = newLastModified;
                             $("#lastUpdated").text(new Date(lastUpdated));
-
                         }
-
                     }
                 }
             });
