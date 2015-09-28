@@ -9,7 +9,6 @@ import static org.junit.Assert.assertThat;
 public class GraphTest {
 
     public static final int LAST_MODIFIED_VALUE = 200;
-    public static final int IMAGE_HEIGHT = 100;
     public static final String ID = "id";
     public static final String URL = "url";
     public static final String IMAGE_PATH = "imagePath";
@@ -27,7 +26,6 @@ public class GraphTest {
         expected.put(Graph.ID, ID);
         expected.put(Graph.LAST_MODIFIED, LAST_MODIFIED_VALUE);
         expected.put(Graph.URL, URL);
-        expected.put(Graph.HEIGHT, IMAGE_HEIGHT);
 
         JSONObject actual = graph.toJSON(CONTEXT_ROOT);
 
