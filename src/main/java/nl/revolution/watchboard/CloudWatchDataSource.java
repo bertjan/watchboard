@@ -159,9 +159,13 @@ public class CloudWatchDataSource {
             try {
                 LOG.debug("Starting update of {}", filename);
 
+                // Perform dummy get to localhost to clear browser. This provides a workaround for rendering of an
+                // axis that is not used.
+                String localURL = "http://localhost:" + Config.getInstance().getInt(Config.HTTP_PORT) + Config.getInstance().getContextRoot();
+                driver.get(localURL);
                 driver.manage().window().setSize(new Dimension(width, height));
                 driver.get(reportUrl);
-                doSleep(500);
+                doSleep(100);
 
                 // Select bottom option in timezone select (local time).
                 Select timezoneSelect = new Select(driver.findElement(By.id("gwt-debug-timezoneList")));
@@ -191,7 +195,7 @@ public class CloudWatchDataSource {
                     String imageSrc = image.getAttribute("src");
                     if (MAXIMIZE_IMAGE_CONTENT.equals(imageSrc)) {
                         image.click();
-                        doSleep(100);
+                        doSleep(300);
                     }
                 }
 
