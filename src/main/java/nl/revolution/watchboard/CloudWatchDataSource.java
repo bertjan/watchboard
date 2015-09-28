@@ -171,22 +171,11 @@ public class CloudWatchDataSource {
                 Select timezoneSelect = new Select(driver.findElement(By.id("gwt-debug-timezoneList")));
                 timezoneSelect.selectByIndex(timezoneSelect.getOptions().size() - 1);
 
-                // Wait until loading is finished.
-                long loadingStart = System.currentTimeMillis();
-                while (true) {
-                    if (!driver.findElement(By.id("gwt-debug-graphLoadingIndicator")).isDisplayed()) {
-                        long loadTimeMS = System.currentTimeMillis() - loadingStart;
-                        LOG.debug("Graph {} loaded in {} ms.", filename, loadTimeMS);
-                        break;
-                    }
 
-                    long waitingForMS = System.currentTimeMillis() - loadingStart;
-                    LOG.debug("Waiting until {} is loaded (waited for {} ms).", filename, waitingForMS);
-                    if ((waitingForMS / 1000) > MAX_GRAPH_LOADING_TIME_IN_SECONDS) {
-                        LOG.error("Max waiting time of {} seconds for loading graph expired, giving up.", MAX_GRAPH_LOADING_TIME_IN_SECONDS);
-                        return false;
-                    }
-                    doSleep(250);
+                // Wait until loading is finished.
+                boolean graphLoaded = waitUntilGraphIsLoaded(filename);
+                if (!graphLoaded) {
+                    return false;
                 }
 
                 List<WebElement> images = driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.className("gwt-Image"));
@@ -195,8 +184,23 @@ public class CloudWatchDataSource {
                     String imageSrc = image.getAttribute("src");
                     if (MAXIMIZE_IMAGE_CONTENT.equals(imageSrc)) {
                         image.click();
-                        doSleep(300);
+                        doSleep(200);
                     }
+                }
+
+
+                List<WebElement> buttons = driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.tagName("button"));
+                for (WebElement button : buttons) {
+                    if ("Update Graph".equals(button.getText())) {
+                        button.click();
+                        doSleep(200);
+                    }
+                }
+
+                // Wait until loading is finished.
+                graphLoaded = waitUntilGraphIsLoaded(filename);
+                if (!graphLoaded) {
+                    return false;
                 }
 
                 WebElement graph = driver.findElement(By.id("gwt-debug-graphContainer"));
@@ -210,6 +214,27 @@ public class CloudWatchDataSource {
                 LOG.error("Caught WebDriverException: ", e);
                 LOG.error("Error occurred while fetching report for {} ", filename);
                 return false;
+            }
+            return true;
+        }
+
+
+        private boolean waitUntilGraphIsLoaded(String filename) {
+            long loadingStart = System.currentTimeMillis();
+            while (true) {
+                if (!driver.findElement(By.id("gwt-debug-graphLoadingIndicator")).isDisplayed()) {
+                    long loadTimeMS = System.currentTimeMillis() - loadingStart;
+                    LOG.debug("Graph {} loaded in {} ms.", filename, loadTimeMS);
+                    break;
+                }
+
+                long waitingForMS = System.currentTimeMillis() - loadingStart;
+                LOG.debug("Waiting until {} is loaded (waited for {} ms).", filename, waitingForMS);
+                if ((waitingForMS / 1000) > MAX_GRAPH_LOADING_TIME_IN_SECONDS) {
+                    LOG.error("Max waiting time of {} seconds for loading graph expired, giving up.", MAX_GRAPH_LOADING_TIME_IN_SECONDS);
+                    return false;
+                }
+                doSleep(250);
             }
             return true;
         }
