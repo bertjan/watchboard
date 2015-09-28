@@ -19,7 +19,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class CloudWatchDataSource {
@@ -129,8 +128,8 @@ public class CloudWatchDataSource {
                 initWebDriver();
                 return;
             }
-            doSleep(500);
-        }
+            doSleep(250);
+            }
 
         private void shutdownWebDriver() {
             if (driver != null) {
@@ -171,6 +170,19 @@ public class CloudWatchDataSource {
                 Select timezoneSelect = new Select(driver.findElement(By.id("gwt-debug-timezoneList")));
                 timezoneSelect.selectByIndex(timezoneSelect.getOptions().size() - 1);
 
+                driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.className("gwt-Image")).stream().forEach(image -> {
+                    if (MAXIMIZE_IMAGE_CONTENT.equals(image.getAttribute("src"))) {
+                        image.click();
+                        doSleep(100);
+                    }
+                });
+
+                driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.tagName("button")).stream().forEach(button -> {
+                    if ("Update Graph".equals(button.getText())) {
+                        button.click();
+                        doSleep(100);
+                    }
+                });
 
                 // Wait until loading is finished.
                 boolean graphLoaded = waitUntilGraphIsLoaded(filename);
@@ -178,34 +190,8 @@ public class CloudWatchDataSource {
                     return false;
                 }
 
-                List<WebElement> images = driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.className("gwt-Image"));
-
-                for (WebElement image : images) {
-                    String imageSrc = image.getAttribute("src");
-                    if (MAXIMIZE_IMAGE_CONTENT.equals(imageSrc)) {
-                        image.click();
-                        doSleep(200);
-                    }
-                }
-
-
-                List<WebElement> buttons = driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.tagName("button"));
-                for (WebElement button : buttons) {
-                    if ("Update Graph".equals(button.getText())) {
-                        button.click();
-                        doSleep(200);
-                    }
-                }
-
-                // Wait until loading is finished.
-                graphLoaded = waitUntilGraphIsLoaded(filename);
-                if (!graphLoaded) {
-                    return false;
-                }
-
-                WebElement graph = driver.findElement(By.id("gwt-debug-graphContainer"));
                 try {
-                    takeShot(graph, filename);
+                    takeShot(driver.findElement(By.id("gwt-debug-graphContainer")), filename);
                 } catch (IOException e) {
                     LOG.error("Error while taking screenshot:", e);
                     return false;
@@ -240,15 +226,18 @@ public class CloudWatchDataSource {
         }
 
         private void takeShot(WebElement element, String fileName) throws IOException {
-            // LOG.debug("Taking screenshot for {}.", fileName);
             File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
             // Crop the entire page screenshot to get only element screenshot.
-            BufferedImage eleScreenshot = ImageIO.read(screenshot).getSubimage(
-                    element.getLocation().getX(), element.getLocation().getY(),
-                    element.getSize().getWidth(), element.getSize().getHeight());
-            ImageIO.write(eleScreenshot, "png", screenshot);
-            FileUtils.copyFile(screenshot, new File(fileName));
-            LOG.info("Updated {}.", fileName);
+            try {
+                BufferedImage eleScreenshot = ImageIO.read(screenshot).getSubimage(
+                        element.getLocation().getX(), element.getLocation().getY(),
+                        element.getSize().getWidth(), element.getSize().getHeight());
+                ImageIO.write(eleScreenshot, "png", screenshot);
+                FileUtils.copyFile(screenshot, new File(fileName));
+                LOG.info("Updated {}.", fileName);
+            } catch (Exception e) {
+                LOG.error("Error while taking screenshot:", e);
+            }
         }
 
         private void loginToAwsConsole(String username, String password) {
