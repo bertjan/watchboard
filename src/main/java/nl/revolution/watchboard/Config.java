@@ -39,6 +39,7 @@ public class Config {
     public static final String BACKEND_UPDATE_INTERVAL_SECONDS = "backendUpdateIntervalSeconds";
     public static final String MAX_SESSION_DURATION_MINUTES = "maxSessionDurationMinutes";
     public static final String AWS_SIGNIN_URL = "aws.signin.url";
+    public static final String DEFAULT_NUMBER_OF_COLUMNS = "defaultNumberOfColumns";
 
     private static final List<String> REQUIRED_CONFIG_KEYS = Arrays.asList(HTTP_PORT, WEB_CONTEXTROOT, AWS_USERNAME,
             AWS_PASSWORD, AWS_SIGNIN_URL, TEMP_PATH, BACKEND_UPDATE_INTERVAL_SECONDS, MAX_SESSION_DURATION_MINUTES, DASHBOARDS);
@@ -121,6 +122,7 @@ public class Config {
             Dashboard dashboard = new Dashboard();
             dashboard.setId(readString(dashObj, ID));
             dashboard.setTitle(readString(dashObj, TITLE));
+            dashboard.setDefaultNumberOfColumns(readInteger(dashObj, DEFAULT_NUMBER_OF_COLUMNS));
 
             JSONArray graphsJa = (JSONArray)dashObj.get(GRAPHS);
             for (int graphIndex = 0; graphIndex < graphsJa.size(); graphIndex++) {
@@ -130,7 +132,6 @@ public class Config {
                 graph.setId(readString(graphObj, ID));
                 graph.setBrowserWidth(readInt(graphObj, BROWSER_WIDTH));
                 graph.setBrowserHeight(readInt(graphObj, BROWSER_HEIGHT));
-                graph.setImageHeight(readInt(graphObj, IMAGE_HEIGHT));
                 graph.setImagePath(getString(TEMP_PATH) + "/" + readString(graphObj, ID).toString() + EXTENSION_PNG);
                 dashboard.getGraphs().add(graph);
             }
@@ -166,6 +167,15 @@ public class Config {
         }
         return Integer.valueOf(value.toString()).intValue();
     }
+
+    private Integer readInteger(JSONObject jsonObject, String key) {
+        Object value = jsonObject.get(key);
+        if (value == null) {
+            return null;
+        }
+        return Integer.valueOf(value.toString());
+    }
+
 
     public List<Dashboard> getDashboards() {
         return dashboards;

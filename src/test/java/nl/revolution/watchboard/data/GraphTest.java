@@ -21,7 +21,6 @@ public class GraphTest {
         graph.setId(ID);
         graph.setUrl(URL);
         graph.setImagePath(IMAGE_PATH);
-        graph.setImageHeight(IMAGE_HEIGHT);
 
         JSONObject expected = new JSONObject();
         expected.put(Graph.FILENAME, CONTEXT_ROOT + Graph.IMAGES_PATH + ID + Graph.IMAGE_SUFFIX);

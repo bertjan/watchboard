@@ -69,6 +69,9 @@ public class APIHandler extends AbstractHandler {
             JSONObject dashObj = new JSONObject();
             dashObj.put(Config.ID, dashboard.getId());
             dashObj.put(Config.TITLE, dashboard.getTitle());
+            if (dashboard.getDefaultNumberOfColumns() != null) {
+                dashObj.put(Config.DEFAULT_NUMBER_OF_COLUMNS, dashboard.getDefaultNumberOfColumns());
+            }
             dashboards.add(dashObj);
         });
 

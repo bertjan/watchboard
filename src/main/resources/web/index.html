@@ -20,8 +20,13 @@
                 $("#dashboards").html("<ul>");
                 for (var i = 0; i < data.dashboards.length; i++) {
                     dashboard = data.dashboards[i];
+                    dashboardLink = dashboard.id;
+                    if (dashboard.defaultNumberOfColumns) {
+                        dashboardLink += "#columns=" + dashboard.defaultNumberOfColumns;
+                    }
+
                     $("#dashboards").html($("#dashboards").html() +
-                            "<li><a href=\""+ dashboard.id + "\">" + dashboard.title + "</a></li>");
+                            "<li><a href=\""+ dashboardLink + "\">" + dashboard.title + "</a></li>");
                 }
                 $("#dashboards").html($("#dashboards").html() + "</ul>")
             },

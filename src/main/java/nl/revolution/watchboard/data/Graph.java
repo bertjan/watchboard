@@ -19,7 +19,6 @@ public class Graph {
     private String imagePath;
     private int browserWidth;
     private int browserHeight;
-    private int imageHeight;
 
     public JSONObject toJSON(String contextRoot) {
         JSONObject json = new JSONObject();
@@ -27,7 +26,6 @@ public class Graph {
         json.put(URL, url);
         json.put(FILENAME, contextRoot + IMAGES_PATH + id + IMAGE_SUFFIX);
         json.put(LAST_MODIFIED, determineLastModified());
-        json.put(HEIGHT, imageHeight);
         return json;
     }
 
@@ -65,14 +63,6 @@ public class Graph {
 
     public void setBrowserHeight(int browserHeight) {
         this.browserHeight = browserHeight;
-    }
-
-    public int getImageHeight() {
-        return imageHeight;
-    }
-
-    public void setImageHeight(int imageHeight) {
-        this.imageHeight = imageHeight;
     }
 
     public String getImagePath() {
