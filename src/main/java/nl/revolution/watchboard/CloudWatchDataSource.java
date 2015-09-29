@@ -132,9 +132,13 @@ public class CloudWatchDataSource {
             }
 
         private void shutdownWebDriver() {
-            if (driver != null) {
-                driver.quit();
-                driver = null;
+            try {
+                if (driver != null) {
+                    driver.quit();
+                    driver = null;
+                }
+            } catch (Exception e) {
+                LOG.error("Error while shutting down webDriver: ", e);
             }
             doSleep(500);
         }
