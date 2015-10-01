@@ -1,6 +1,7 @@
 package nl.revolution.watchboard;
 
 import nl.revolution.watchboard.data.Dashboard;
+import nl.revolution.watchboard.utils.IpAddressUtil;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -17,7 +18,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 public class APIHandler extends AbstractHandler {
 
@@ -27,6 +30,10 @@ public class APIHandler extends AbstractHandler {
     private static final String IMAGE_PATH = Config.getInstance().getString(Config.TEMP_PATH);
     private static final String LOADING_ICON_PATH = "/web/loading.gif";
     private static final Charset CHARSET_UTF_8 = Charset.forName("UTF-8");
+    private static final int USER_STATS_LOG_INTERVAL_MINUTES = 1;
+
+    private Set<String> userStats = new HashSet<>();
+    private long tsLastLoggedUserStats = 0;
 
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
@@ -96,6 +103,17 @@ public class APIHandler extends AbstractHandler {
             new NotFoundHandler().handle(target, baseRequest, request, response);
             return;
         }
+
+        long tsNow = System.currentTimeMillis();
+        if (tsNow - tsLastLoggedUserStats > USER_STATS_LOG_INTERVAL_MINUTES*60*1000) {
+            synchronized (userStats) {
+                LOG.info("Estimated number of users accessing graphs in the past " + USER_STATS_LOG_INTERVAL_MINUTES + " minutes: " + userStats.size());
+                userStats.clear();
+                tsLastLoggedUserStats = tsNow;
+            }
+        }
+
+        userStats.add(determineRemoteUserFingerPrint(request));
 
         response.setContentType(CONTENT_TYPE_JSON_UTF8);
         response.setStatus(HttpServletResponse.SC_OK);
@@ -168,6 +186,14 @@ public class APIHandler extends AbstractHandler {
         }
     }
 
+    private String determineRemoteUserFingerPrint(HttpServletRequest request) {
+        try {
+            return IpAddressUtil.getClientIp(request) + "_" + request.getHeader("User-Agent") + "_" + request.getHeader("Accept-Language");
+        } catch (Exception e) {
+            LOG.error("Error while determining remote user fingerprint: ", e);
+            return null;
+        }
+    }
 
 }
 
