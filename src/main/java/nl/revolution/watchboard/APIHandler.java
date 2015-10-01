@@ -3,6 +3,7 @@ package nl.revolution.watchboard;
 import nl.revolution.watchboard.data.Dashboard;
 import nl.revolution.watchboard.utils.IpAddressUtil;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.json.simple.JSONArray;
@@ -30,7 +31,7 @@ public class APIHandler extends AbstractHandler {
     private static final String IMAGE_PATH = Config.getInstance().getString(Config.TEMP_PATH);
     private static final String LOADING_ICON_PATH = "/web/loading.gif";
     private static final Charset CHARSET_UTF_8 = Charset.forName("UTF-8");
-    private static final int USER_STATS_LOG_INTERVAL_MINUTES = 1;
+    private static final int USER_STATS_LOG_INTERVAL_MINUTES = 5;
 
     private Set<String> userStats = new HashSet<>();
     private long tsLastLoggedUserStats = 0;
@@ -108,6 +109,7 @@ public class APIHandler extends AbstractHandler {
         if (tsNow - tsLastLoggedUserStats > USER_STATS_LOG_INTERVAL_MINUTES*60*1000) {
             synchronized (userStats) {
                 LOG.info("Estimated number of users accessing graphs in the past " + USER_STATS_LOG_INTERVAL_MINUTES + " minutes: " + userStats.size());
+                LOG.debug("User stats: \n" + StringUtils.join(userStats, "\n"));
                 userStats.clear();
                 tsLastLoggedUserStats = tsNow;
             }
