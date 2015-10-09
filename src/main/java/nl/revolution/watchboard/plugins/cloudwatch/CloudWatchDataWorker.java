@@ -1,5 +1,7 @@
-package nl.revolution.watchboard;
+package nl.revolution.watchboard.plugins.cloudwatch;
 
+import nl.revolution.watchboard.Config;
+import nl.revolution.watchboard.WebDriverHttpParamsSetter;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
@@ -8,7 +10,7 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.phantomjs.PhantomJSDriver;
+//import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -90,7 +92,7 @@ public class CloudWatchDataWorker extends Thread {
         try {
             // driver = new FirefoxDriver();
             WebDriverHttpParamsSetter.setSoTimeout(SOCKET_TIMEOUT_MS);
-            driver = new PhantomJSDriver();
+//            driver = new PhantomJSDriver();
             driver.manage().timeouts().pageLoadTimeout(WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             driver.manage().timeouts().setScriptTimeout(WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             driver.manage().timeouts().implicitlyWait(WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);

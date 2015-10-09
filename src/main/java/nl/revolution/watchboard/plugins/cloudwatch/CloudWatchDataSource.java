@@ -1,4 +1,4 @@
-package nl.revolution.watchboard;
+package nl.revolution.watchboard.plugins.cloudwatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

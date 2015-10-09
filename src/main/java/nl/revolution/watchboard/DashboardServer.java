@@ -2,6 +2,7 @@ package nl.revolution.watchboard;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
+import nl.revolution.watchboard.plugins.cloudwatch.CloudWatchDataSource;
 import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
