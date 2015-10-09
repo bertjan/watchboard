@@ -10,7 +10,7 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
-//import org.openqa.selenium.phantomjs.PhantomJSDriver;
+import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -90,9 +90,8 @@ public class CloudWatchDataWorker extends Thread {
     private void initWebDriver() {
         LOG.info("Initializing PhantomJS webDriver.");
         try {
-            // driver = new FirefoxDriver();
             WebDriverHttpParamsSetter.setSoTimeout(SOCKET_TIMEOUT_MS);
-//            driver = new PhantomJSDriver();
+            driver = new PhantomJSDriver();
             driver.manage().timeouts().pageLoadTimeout(WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             driver.manage().timeouts().setScriptTimeout(WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             driver.manage().timeouts().implicitlyWait(WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
