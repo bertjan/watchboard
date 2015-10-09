@@ -3,6 +3,7 @@ package nl.revolution.watchboard.plugins.cloudwatch;
 import nl.revolution.watchboard.Config;
 import nl.revolution.watchboard.WebDriverHttpParamsSetter;
 import nl.revolution.watchboard.data.Graph;
+import nl.revolution.watchboard.data.Plugin;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
@@ -37,11 +38,14 @@ public class CloudWatchDataWorker extends Thread {
     private long currentSessionStartTimestamp;
     private boolean stop;
 
+    private Plugin cloudWatchPlugin;
+
     public void run() {
         LOG.info("Starting CloudWatch data worker");
+        cloudWatchPlugin = Config.getInstance().getPlugin(Graph.Type.CLOUDWATCH);
 
         initWebDriver();
-        loginToAwsConsole(Config.getInstance().getString(Config.AWS_USERNAME), Config.getInstance().getString(Config.AWS_PASSWORD));
+        loginToAwsConsole(cloudWatchPlugin.getUsername(), cloudWatchPlugin.getPassword());
 
         LOG.info("Starting main update loop.");
         currentSessionStartTimestamp = System.currentTimeMillis();
@@ -121,7 +125,7 @@ public class CloudWatchDataWorker extends Thread {
     private void restartWebDriverAndLoginToAWSConsole() {
         shutdownWebDriver();
         initWebDriver();
-        loginToAwsConsole(Config.getInstance().getString(Config.AWS_USERNAME), Config.getInstance().getString(Config.AWS_PASSWORD));
+        loginToAwsConsole(cloudWatchPlugin.getUsername(), cloudWatchPlugin.getPassword());
         currentSessionStartTimestamp = System.currentTimeMillis();
     }
 
@@ -170,7 +174,7 @@ public class CloudWatchDataWorker extends Thread {
             }
 
             try {
-                takeShot(driver.findElement(By.id("gwt-debug-graphContainer")), filename);
+                takeShot(driver, driver.findElement(By.id("gwt-debug-graphContainer")), filename);
             } catch (IOException e) {
                 LOG.error("Error while taking screenshot:", e);
                 return false;
@@ -204,7 +208,7 @@ public class CloudWatchDataWorker extends Thread {
         return true;
     }
 
-    private void takeShot(WebElement element, String fileName) throws IOException {
+    public static void takeShot(WebDriver driver, WebElement element, String fileName) throws IOException {
         File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
         // Crop the entire page screenshot to get only element screenshot.
         try {
@@ -222,7 +226,7 @@ public class CloudWatchDataWorker extends Thread {
     private void loginToAwsConsole(String username, String password) {
         LOG.info("Logging in to AWS console.");
         try {
-            driver.get(Config.getInstance().getString(Config.AWS_SIGNIN_URL));
+            driver.get(cloudWatchPlugin.getLoginUrl());
             doSleep(500);
             driver.get("https://console.aws.amazon.com/console/home");
             verifyTitle("Amazon Web Services Sign-In");

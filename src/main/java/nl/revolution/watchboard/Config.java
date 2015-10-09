@@ -2,6 +2,7 @@ package nl.revolution.watchboard;
 
 import nl.revolution.watchboard.data.Dashboard;
 import nl.revolution.watchboard.data.Graph;
+import nl.revolution.watchboard.data.Plugin;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -25,6 +26,7 @@ public class Config {
 
     public static final String ID = "id";
     public static final String TITLE = "title";
+    public static final String PLUGINS = "plugins";
     public static final String DASHBOARDS = "dashboards";
     public static final String GRAPHS = "graphs";
     public static final String TYPE = "type";
@@ -34,23 +36,25 @@ public class Config {
     public static final String TEMP_PATH = "temp.path";
     public static final String WEB_CONTEXTROOT = "web.contextroot";
     public static final String HTTP_PORT = "httpPort";
-    public static final String AWS_USERNAME = "aws.username";
-    public static final String AWS_PASSWORD = "aws.password";
     public static final String BACKEND_UPDATE_INTERVAL_SECONDS = "backendUpdateIntervalSeconds";
     public static final String MAX_SESSION_DURATION_MINUTES = "maxSessionDurationMinutes";
-    public static final String AWS_SIGNIN_URL = "aws.signin.url";
     public static final String DEFAULT_NUMBER_OF_COLUMNS = "defaultNumberOfColumns";
 
-    private static final List<String> REQUIRED_CONFIG_KEYS_GLOBAL = Arrays.asList(HTTP_PORT, WEB_CONTEXTROOT, AWS_USERNAME,
-            AWS_PASSWORD, AWS_SIGNIN_URL, TEMP_PATH, BACKEND_UPDATE_INTERVAL_SECONDS, MAX_SESSION_DURATION_MINUTES, DASHBOARDS);
+    private static final List<String> REQUIRED_CONFIG_KEYS_GLOBAL = Arrays.asList(HTTP_PORT, WEB_CONTEXTROOT,
+            TEMP_PATH, BACKEND_UPDATE_INTERVAL_SECONDS, MAX_SESSION_DURATION_MINUTES, DASHBOARDS, PLUGINS);
     private static final List<String> REQUIRED_CONFIG_KEYS_DASHBOARD = Arrays.asList(ID, TITLE, GRAPHS);
     private static final List<String> REQUIRED_CONFIG_KEYS_GRAPH = Arrays.asList(TYPE, URL, ID, BROWSER_WIDTH, BROWSER_HEIGHT);
 
     private static final String EXTENSION_PNG = ".png";
+    public static final String LOGIN_URL = "login.url";
+    public static final String USERNAME = "username";
+    public static final String PASSWORD = "password";
 
     private static Config instance;
     private JSONObject config;
     private List<Dashboard> dashboards;
+    private List<Plugin> plugins;
+
     private long configFileLastModified;
 
     public static Config getInstance() {
@@ -76,6 +80,7 @@ public class Config {
         readConfigFromDisk();
         checkConfig();
         parseDashboards();
+        parsePlugins();
         configFileLastModified = getConfigFile().lastModified();
 
         LOG.info("Config initialized. Configured {} dashboards with a total of {} graphs.",
@@ -139,6 +144,8 @@ public class Config {
                 });
             });
         });
+
+        // TODO: check plugin config
     }
 
     private void parseDashboards() {
@@ -158,13 +165,8 @@ public class Config {
                 graph.setUrl(readString(graphObj, URL));
                 graph.setId(readString(graphObj, ID));
 
-                String typeStr = readString(graphObj, TYPE).toUpperCase();
-                Graph.Type graphType = null;
-                if (Graph.Type.CLOUDWATCH.toString().equals(typeStr)) {
-                    graphType = Graph.Type.CLOUDWATCH;
-                } else if (Graph.Type.PERFORMR.toString().equals(typeStr)) {
-                    graphType = Graph.Type.PERFORMR;
-                }
+                String typeStr = readString(graphObj, TYPE);
+                Graph.Type graphType = Graph.Type.fromString(typeStr);
                 graph.setType(graphType);
                 graph.setBrowserWidth(readInt(graphObj, BROWSER_WIDTH));
                 graph.setBrowserHeight(readInt(graphObj, BROWSER_HEIGHT));
@@ -173,6 +175,30 @@ public class Config {
             }
             dashboards.add(dashboard);
         }
+    }
+
+    private void parsePlugins() {
+        plugins = new ArrayList<>();
+        JSONArray pluginArr = (JSONArray)config.get(PLUGINS);
+        pluginArr.forEach(pluginObj -> {
+            JSONObject pluginJo = (JSONObject)pluginObj;
+            Plugin plugin = new Plugin();
+            String typeStr = readString(pluginJo, TYPE);
+            plugin.setType(Graph.Type.fromString(typeStr));
+            plugin.setLoginUrl(readString(pluginJo, LOGIN_URL));
+            plugin.setUsername(readString(pluginJo, USERNAME));
+            plugin.setPassword(readString(pluginJo, PASSWORD));
+            plugins.add(plugin);
+        });
+    }
+
+    public Plugin getPlugin(Graph.Type type) {
+        for (Plugin plugin : plugins) {
+            if (type.equals(plugin.getType())) {
+                return plugin;
+            }
+        }
+        return null;
     }
 
     private String getCurrentPath() {

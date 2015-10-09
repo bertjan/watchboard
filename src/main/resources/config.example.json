@@ -1,11 +1,22 @@
 {
-  "httpPort" : 8080,
-  "aws.username" : "johndoe",
-  "aws.password" : "secret",
-  "aws.signin.url" : "https://my-organization.signin.aws.amazon.com",
-  "temp.path" : "/tmp",
+  "httpPort" : 8090,
   "web.contextroot" : "/",
-  "backendUpdateIntervalSeconds" : 60,
+  "temp.path" : "/tmp",
+  "plugins" : [
+    {
+      "type" : "cloudwatch",
+      "username" : "johndoe",
+      "password" : "secret",
+      "login.url" : "https://my-organization.signin.aws.amazon.com"
+    },
+    {
+      "type" : "performr",
+      "username" : "johndoe",
+      "password" : "secret",
+      "login.url" : "https://url-to.performr.com"
+    }
+  ],
+  "backendUpdateIntervalSeconds" : 90,
   "maxSessionDurationMinutes" : 30,
   "dashboards" : [
     {

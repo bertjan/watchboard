@@ -1,5 +1,6 @@
 package nl.revolution.watchboard.data;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 
 import java.io.File;
@@ -13,7 +14,22 @@ public class Graph {
     public static final String LAST_MODIFIED = "lastModified";
     public static final String IMAGES_PATH = "images/";
     public static final String IMAGE_SUFFIX = ".png";
-    public enum Type { CLOUDWATCH, PERFORMR }
+    public enum Type {
+        CLOUDWATCH, PERFORMR;
+
+        public static Type fromString(String typeStr) {
+            if (StringUtils.isEmpty(typeStr)) {
+                return null;
+            }
+            typeStr = typeStr.toUpperCase();
+            if (CLOUDWATCH.toString().equals(typeStr)) {
+                return CLOUDWATCH;
+            } else if (PERFORMR.toString().equals(typeStr)) {
+                return PERFORMR;
+            }
+            return null;
+        }
+    }
 
     private String url;
     private String id;
