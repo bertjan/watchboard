@@ -11,6 +11,7 @@ public class GraphTest {
     public static final int LAST_MODIFIED_VALUE = 200;
     public static final String ID = "id";
     public static final String URL = "url";
+    public static final Graph.Type TYPE = Graph.Type.CLOUDWATCH;
     public static final String IMAGE_PATH = "imagePath";
     public static final String CONTEXT_ROOT = "contextRoot/";
 
@@ -19,11 +20,13 @@ public class GraphTest {
         Graph graph = createTestGraph();
         graph.setId(ID);
         graph.setUrl(URL);
+        graph.setType(TYPE);
         graph.setImagePath(IMAGE_PATH);
 
         JSONObject expected = new JSONObject();
         expected.put(Graph.FILENAME, CONTEXT_ROOT + Graph.IMAGES_PATH + ID + Graph.IMAGE_SUFFIX);
         expected.put(Graph.ID, ID);
+        expected.put(Graph.TYPE, "CLOUDWATCH");
         expected.put(Graph.LAST_MODIFIED, LAST_MODIFIED_VALUE);
         expected.put(Graph.URL, URL);
 

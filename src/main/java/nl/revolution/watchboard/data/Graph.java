@@ -8,14 +8,16 @@ public class Graph {
 
     public static final String ID = "id";
     public static final String URL = "url";
+    public static final String TYPE = "type";
     public static final String FILENAME = "filename";
     public static final String LAST_MODIFIED = "lastModified";
-    public static final String HEIGHT = "height";
     public static final String IMAGES_PATH = "images/";
     public static final String IMAGE_SUFFIX = ".png";
+    public enum Type { CLOUDWATCH, PERFORMR }
 
     private String url;
     private String id;
+    private Type type;
     private String imagePath;
     private int browserWidth;
     private int browserHeight;
@@ -24,6 +26,7 @@ public class Graph {
         JSONObject json = new JSONObject();
         json.put(ID, id);
         json.put(URL, url);
+        json.put(TYPE, type.toString());
         json.put(FILENAME, contextRoot + IMAGES_PATH + id + IMAGE_SUFFIX);
         json.put(LAST_MODIFIED, determineLastModified());
         return json;
@@ -73,6 +76,13 @@ public class Graph {
         this.imagePath = imagePath;
     }
 
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
 
 }
 

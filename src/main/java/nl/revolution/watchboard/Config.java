@@ -27,10 +27,10 @@ public class Config {
     public static final String TITLE = "title";
     public static final String DASHBOARDS = "dashboards";
     public static final String GRAPHS = "graphs";
+    public static final String TYPE = "type";
     public static final String URL = "url";
     public static final String BROWSER_WIDTH = "browserWidth";
     public static final String BROWSER_HEIGHT = "browserHeight";
-    public static final String IMAGE_HEIGHT = "imageHeight";
     public static final String TEMP_PATH = "temp.path";
     public static final String WEB_CONTEXTROOT = "web.contextroot";
     public static final String HTTP_PORT = "httpPort";
@@ -41,8 +41,11 @@ public class Config {
     public static final String AWS_SIGNIN_URL = "aws.signin.url";
     public static final String DEFAULT_NUMBER_OF_COLUMNS = "defaultNumberOfColumns";
 
-    private static final List<String> REQUIRED_CONFIG_KEYS = Arrays.asList(HTTP_PORT, WEB_CONTEXTROOT, AWS_USERNAME,
+    private static final List<String> REQUIRED_CONFIG_KEYS_GLOBAL = Arrays.asList(HTTP_PORT, WEB_CONTEXTROOT, AWS_USERNAME,
             AWS_PASSWORD, AWS_SIGNIN_URL, TEMP_PATH, BACKEND_UPDATE_INTERVAL_SECONDS, MAX_SESSION_DURATION_MINUTES, DASHBOARDS);
+    private static final List<String> REQUIRED_CONFIG_KEYS_DASHBOARD = Arrays.asList(ID, TITLE, GRAPHS);
+    private static final List<String> REQUIRED_CONFIG_KEYS_GRAPH = Arrays.asList(TYPE, URL, ID, BROWSER_WIDTH, BROWSER_HEIGHT);
+
     private static final String EXTENSION_PNG = ".png";
 
     private static Config instance;
@@ -107,10 +110,34 @@ public class Config {
     }
 
     private void checkConfig() {
-        REQUIRED_CONFIG_KEYS.stream().forEach(requiredKey -> {
+        // Check global config.
+        REQUIRED_CONFIG_KEYS_GLOBAL.stream().forEach(requiredKey -> {
             if (!config.containsKey(requiredKey)) {
                 throw new RuntimeException("Required config key '" + requiredKey + "' is missing.");
             }
+        });
+
+        // Check dashboards config.
+        JSONArray dashboards = (JSONArray)config.get("dashboards");
+        dashboards.stream().forEach(dashboard -> {
+            REQUIRED_CONFIG_KEYS_DASHBOARD.stream().forEach(requiredKey -> {
+                if (!((JSONObject)dashboard).containsKey(requiredKey)) {
+                    throw new RuntimeException("Required config key '" + requiredKey +
+                            "' is missing for dashboard '" + ((JSONObject)dashboard).get("id") + "'.");
+                }
+
+                // Check graphs config.
+                JSONArray graphs = (JSONArray)((JSONObject)dashboard).get("graphs");
+                graphs.stream().forEach(graph -> {
+                    REQUIRED_CONFIG_KEYS_GRAPH.stream().forEach(requiredGraphKey -> {
+                        if (!((JSONObject)graph).containsKey(requiredGraphKey)) {
+                            throw new RuntimeException("Required config key '" + requiredGraphKey +
+                                    "' is missing for dashboard '" + ((JSONObject)dashboard).get("id") +
+                                    "', graph '" + ((JSONObject)graph).get("id") + "'.");
+                        }
+                    });
+                });
+            });
         });
     }
 
@@ -130,6 +157,15 @@ public class Config {
                 Graph graph = new Graph();
                 graph.setUrl(readString(graphObj, URL));
                 graph.setId(readString(graphObj, ID));
+
+                String typeStr = readString(graphObj, TYPE).toUpperCase();
+                Graph.Type graphType = null;
+                if (Graph.Type.CLOUDWATCH.toString().equals(typeStr)) {
+                    graphType = Graph.Type.CLOUDWATCH;
+                } else if (Graph.Type.PERFORMR.toString().equals(typeStr)) {
+                    graphType = Graph.Type.PERFORMR;
+                }
+                graph.setType(graphType);
                 graph.setBrowserWidth(readInt(graphObj, BROWSER_WIDTH));
                 graph.setBrowserHeight(readInt(graphObj, BROWSER_HEIGHT));
                 graph.setImagePath(getString(TEMP_PATH) + "/" + readString(graphObj, ID).toString() + EXTENSION_PNG);

@@ -2,6 +2,7 @@ package nl.revolution.watchboard.plugins.cloudwatch;
 
 import nl.revolution.watchboard.Config;
 import nl.revolution.watchboard.WebDriverHttpParamsSetter;
+import nl.revolution.watchboard.data.Graph;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
@@ -52,7 +53,7 @@ public class CloudWatchDataWorker extends Thread {
             // Generate reports for all graphs for all dashboards.
             LOG.info("Updating data from AWS.");
             Config.getInstance().getDashboards().stream().forEach(
-                    dashboard -> dashboard.getGraphs().stream().forEach(graph -> {
+                    dashboard -> dashboard.getGraphs().stream().filter(graph -> graph.getType().equals(Graph.Type.CLOUDWATCH)).forEach(graph -> {
                                 if (!stop) {
                                     boolean executedSuccessfully = getReportScreenshot(graph.getUrl(),
                                             graph.getBrowserWidth(),
