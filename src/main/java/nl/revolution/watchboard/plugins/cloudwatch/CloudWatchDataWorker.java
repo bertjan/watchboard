@@ -161,7 +161,7 @@ public class CloudWatchDataWorker extends Thread {
             });
 
             driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.tagName("button")).stream().forEach(button -> {
-                if ("Update Graph".equals(button.getText())) {
+                if ("Update Graph".equals(button.getAttribute("title"))) {
                     button.click();
                     doSleep(100);
                 }
