@@ -156,22 +156,26 @@ public class CloudWatchDataWorker extends Thread {
             driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.className("gwt-Image")).stream().forEach(image -> {
                 if (MAXIMIZE_IMAGE_CONTENT.equals(image.getAttribute("src"))) {
                     image.click();
-                    doSleep(100);
                 }
             });
+
+            doSleep(300);
 
             driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.tagName("button")).stream().forEach(button -> {
                 if ("Update Graph".equals(button.getAttribute("title"))) {
                     button.click();
-                    doSleep(100);
                 }
             });
+
+            doSleep(300);
 
             // Wait until loading is finished.
             boolean graphLoaded = waitUntilGraphIsLoaded(filename);
             if (!graphLoaded) {
                 return false;
             }
+
+            doSleep(300);
 
             try {
                 takeShot(driver, driver.findElement(By.id("gwt-debug-graphContainer")), filename);
