@@ -116,7 +116,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
             driver.get(localURL);
             driver.manage().window().setSize(new Dimension(width, height));
             driver.get(reportUrl);
-            doSleep(100);
+            // doSleep(100);
 
             // Select bottom option in timezone select (local time).
             Select timezoneSelect = new Select(driver.findElement(By.id("gwt-debug-timezoneList")));
@@ -128,7 +128,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 }
             });
 
-            doSleep(100);
+            // doSleep(100);
 
             driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.tagName("button")).stream().forEach(button -> {
                 if ("Update Graph".equals(button.getAttribute("title"))) {
@@ -136,7 +136,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 }
             });
 
-            doSleep(100);
+            // doSleep(100);
 
             // Wait until loading is finished.
             boolean graphLoaded = waitUntilGraphIsLoaded(filename);
@@ -144,7 +144,8 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 return false;
             }
 
-            doSleep(500);
+            // TODO: replace this by detection instead of sleep.
+            doSleep(400);
 
             try {
                 takeScreenShot(driver, driver.findElement(By.id("gwt-debug-graphContainer")), filename);
