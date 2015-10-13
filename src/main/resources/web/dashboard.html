@@ -90,7 +90,7 @@
                             "<img style=\"width: 100%\" id=\"" + image.id + "\" " +
                             "data-lastmodified=\"" + image.lastModified + "\" " +
                             "src=\"" + image.filename + "\" " +
-                            "alt=\"" + new Date(image.lastModified) + "\" " +
+                            "title=\"" + 'Last updated: ' + new Date(image.lastModified) + "\" " +
                             ">" +
                             "</a></li>");
                 }
@@ -125,7 +125,7 @@
                             // refresh.
                             imageElement.attr('data-lastmodified', image.lastModified);
                             imageElement.attr('src', image.filename + '?' + image.lastModified);
-                            imageElement.attr('alt', 'Last updated: ' + new Date(image.lastModified));
+                            imageElement.attr('title', 'Last updated: ' + new Date(image.lastModified));
                         }
                         if (newLastModified > lastUpdated) {
                             lastUpdated = newLastModified;
