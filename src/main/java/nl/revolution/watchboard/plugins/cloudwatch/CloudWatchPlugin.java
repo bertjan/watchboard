@@ -163,7 +163,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 }
             });
 
-            doSleep(300);
+            doSleep(100);
 
             driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.tagName("button")).stream().forEach(button -> {
                 if ("Update Graph".equals(button.getAttribute("title"))) {
@@ -171,7 +171,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 }
             });
 
-            doSleep(300);
+            doSleep(100);
 
             // Wait until loading is finished.
             boolean graphLoaded = waitUntilGraphIsLoaded(filename);
@@ -179,7 +179,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 return false;
             }
 
-            doSleep(300);
+            doSleep(500);
 
             try {
                 takeShot(driver, driver.findElement(By.id("gwt-debug-graphContainer")), filename);
