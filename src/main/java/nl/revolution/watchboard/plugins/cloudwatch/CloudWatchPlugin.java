@@ -7,6 +7,7 @@ import nl.revolution.watchboard.plugins.WatchboardPlugin;
 import nl.revolution.watchboard.utils.WebDriverWrapper;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static nl.revolution.watchboard.utils.WebDriverUtils.doSleep;
 import static nl.revolution.watchboard.utils.WebDriverUtils.takeScreenShot;
@@ -118,7 +120,8 @@ public class CloudWatchPlugin implements WatchboardPlugin {
             // axis that is not used.
             String localURL = "http://localhost:" + Config.getInstance().getInt(Config.HTTP_PORT) + Config.getInstance().getContextRoot();
             driver.get(localURL);
-            driver.get(reportUrl);
+
+            loadPageAsync(driver, reportUrl);
 
             // Select bottom option in timezone select (local time).
             Select timezoneSelect = new Select(driver.findElement(By.id("gwt-debug-timezoneList")));
@@ -163,7 +166,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
             return false;
         }
         long end = System.currentTimeMillis();
-        LOG.info("Updating " + filename + " took " + (end-start) + " ms.");
+        LOG.info("Updating " + filename + " took " + (end - start) + " ms.");
         return true;
     }
 
@@ -187,6 +190,18 @@ public class CloudWatchPlugin implements WatchboardPlugin {
             doSleep(250);
         }
         return true;
+    }
+
+    private void loadPageAsync(WebDriver driver, String url) {
+        // Trick to speed up page loading.
+        driver.manage().timeouts().pageLoadTimeout(0, TimeUnit.MILLISECONDS);
+        try {
+            driver.get(url);
+        } catch (TimeoutException ignored) {
+            // Expected, do nothing.
+        }
+        // Back to original timeout.
+        driver.manage().timeouts().pageLoadTimeout(WebDriverWrapper.WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
 }

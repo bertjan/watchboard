@@ -15,7 +15,7 @@ public class WebDriverWrapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebDriverWrapper.class);
     private static final int SOCKET_TIMEOUT_MS = 60 * 1000;
-    private static final int WEBDRIVER_TIMEOUT_SECONDS = 60;
+    public static final int WEBDRIVER_TIMEOUT_SECONDS = 60;
 
     private WebDriver driver;
 
