@@ -31,6 +31,7 @@ public class Config {
     public static final String GRAPHS = "graphs";
     public static final String TYPE = "type";
     public static final String URL = "url";
+    public static final String COMPONENTS = "components";
     public static final String BROWSER_WIDTH = "browserWidth";
     public static final String BROWSER_HEIGHT = "browserHeight";
     public static final String TEMP_PATH = "temp.path";
@@ -43,7 +44,7 @@ public class Config {
     private static final List<String> REQUIRED_CONFIG_KEYS_GLOBAL = Arrays.asList(HTTP_PORT, WEB_CONTEXTROOT,
             TEMP_PATH, BACKEND_UPDATE_INTERVAL_SECONDS, MAX_SESSION_DURATION_MINUTES, DASHBOARDS, PLUGINS);
     private static final List<String> REQUIRED_CONFIG_KEYS_DASHBOARD = Arrays.asList(ID, TITLE, GRAPHS);
-    private static final List<String> REQUIRED_CONFIG_KEYS_GRAPH = Arrays.asList(TYPE, URL, ID, BROWSER_WIDTH, BROWSER_HEIGHT);
+    private static final List<String> REQUIRED_CONFIG_KEYS_GRAPH = Arrays.asList(TYPE, ID, BROWSER_WIDTH, BROWSER_HEIGHT);
 
     private static final String EXTENSION_PNG = ".png";
     public static final String LOGIN_URL = "login.url";
@@ -171,6 +172,12 @@ public class Config {
                 graph.setBrowserWidth(readInt(graphObj, BROWSER_WIDTH));
                 graph.setBrowserHeight(readInt(graphObj, BROWSER_HEIGHT));
                 graph.setImagePath(getString(TEMP_PATH) + "/" + readString(graphObj, ID).toString() + EXTENSION_PNG);
+
+
+                Object componentsObj = graphObj.get(COMPONENTS);
+                if (componentsObj != null) {
+                    graph.setComponents((List)componentsObj);
+                }
                 dashboard.getGraphs().add(graph);
             }
             dashboards.add(dashboard);

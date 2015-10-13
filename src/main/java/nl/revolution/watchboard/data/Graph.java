@@ -1,9 +1,11 @@
 package nl.revolution.watchboard.data;
 
 import org.apache.commons.lang3.StringUtils;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.io.File;
+import java.util.List;
 
 public class Graph {
 
@@ -14,6 +16,8 @@ public class Graph {
     public static final String LAST_MODIFIED = "lastModified";
     public static final String IMAGES_PATH = "images/";
     public static final String IMAGE_SUFFIX = ".png";
+    public static final String COMPONENTS = "components";
+
     public enum Type {
         CLOUDWATCH, PERFORMR;
 
@@ -37,6 +41,7 @@ public class Graph {
     private String imagePath;
     private int browserWidth;
     private int browserHeight;
+    private List<String> components;
 
     public JSONObject toJSON(String contextRoot) {
         JSONObject json = new JSONObject();
@@ -45,6 +50,12 @@ public class Graph {
         json.put(TYPE, type.toString());
         json.put(FILENAME, contextRoot + IMAGES_PATH + id + IMAGE_SUFFIX);
         json.put(LAST_MODIFIED, determineLastModified());
+
+        if (components != null) {
+            JSONArray componentsJa = new JSONArray();
+            componentsJa.addAll(components);
+            json.put(COMPONENTS, componentsJa);
+        }
         return json;
     }
 
@@ -98,6 +109,14 @@ public class Graph {
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+    public List<String> getComponents() {
+        return components;
+    }
+
+    public void setComponents(List<String> components) {
+        this.components = components;
     }
 
 }

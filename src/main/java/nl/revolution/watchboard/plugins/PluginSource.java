@@ -14,14 +14,14 @@ public class PluginSource {
     private Thread worker;
 
     public void start() {
-        worker = new PluginThread();
+        worker = new PluginUpdateThread();
         worker.start();
     }
 
     public void stop() {
         if (worker != null) {
             if (worker.isAlive()) {
-                ((PluginThread)worker).doStop();
+                ((PluginUpdateThread)worker).doStop();
                 try {
                     worker.join();
                 } catch (InterruptedException e) {

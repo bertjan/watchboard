@@ -2,7 +2,7 @@ package nl.revolution.watchboard.plugins;
 
 public interface WatchboardPlugin {
 
-    void initialize();
+    void performLogin();
 
     void performUpdate();
 
