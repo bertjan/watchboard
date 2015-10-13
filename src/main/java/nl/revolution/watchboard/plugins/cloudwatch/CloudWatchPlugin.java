@@ -9,6 +9,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -43,6 +44,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
         LOG.info("Logging in to AWS console.");
         WebDriver driver = wrappedDriver.getDriver();
         try {
+            driver.manage().window().setSize(new Dimension(800, 600));
             driver.get(cloudWatchPlugin.getLoginUrl());
             doSleep(500);
             driver.get("https://console.aws.amazon.com/console/home");
@@ -106,17 +108,17 @@ public class CloudWatchPlugin implements WatchboardPlugin {
     }
 
     private boolean getReportScreenshot(String reportUrl, int width, int height, String filename) {
+        long start = System.currentTimeMillis();
         try {
             WebDriver driver = wrappedDriver.getDriver();
             LOG.debug("Starting update of {}", filename);
+            driver.manage().window().setSize(new Dimension(width, height));
 
             // Perform dummy get to localhost to clear browser. This provides a workaround for rendering of an
             // axis that is not used.
             String localURL = "http://localhost:" + Config.getInstance().getInt(Config.HTTP_PORT) + Config.getInstance().getContextRoot();
             driver.get(localURL);
-            driver.manage().window().setSize(new Dimension(width, height));
             driver.get(reportUrl);
-            // doSleep(100);
 
             // Select bottom option in timezone select (local time).
             Select timezoneSelect = new Select(driver.findElement(By.id("gwt-debug-timezoneList")));
@@ -128,7 +130,6 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 }
             });
 
-            // doSleep(100);
 
             driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.tagName("button")).stream().forEach(button -> {
                 if ("Update Graph".equals(button.getAttribute("title"))) {
@@ -136,7 +137,6 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 }
             });
 
-            // doSleep(100);
 
             // Wait until loading is finished.
             boolean graphLoaded = waitUntilGraphIsLoaded(filename);
@@ -144,13 +144,12 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 return false;
             }
 
-            for (int i=0;i<10;i++) {
-                LOG.debug("flot-base displayed for " + filename + ": " + driver.findElement(By.className("flot-base")).isDisplayed());
+
+            for (int i=0;i<5;i++) {
+                WebElement canvas = driver.findElement(By.className("flot-base"));
+                LOG.info("Canvas isDisplayed:" + canvas.isDisplayed() + ", isEnabled:" + canvas.isEnabled());
                 doSleep(50);
             }
-
-            // TODO: replace this by proper detection instead of sleep.
-            //doSleep(500);
 
             try {
                 takeScreenShot(driver, driver.findElement(By.id("gwt-debug-graphContainer")), filename);
@@ -163,6 +162,8 @@ public class CloudWatchPlugin implements WatchboardPlugin {
             LOG.error("Error occurred while fetching report for {} ", filename);
             return false;
         }
+        long end = System.currentTimeMillis();
+        LOG.info("Updating " + filename + " took " + (end-start) + " ms.");
         return true;
     }
 

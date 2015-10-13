@@ -3,6 +3,7 @@ package nl.revolution.watchboard.utils;
 import nl.revolution.watchboard.WebDriverHttpParamsSetter;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +23,12 @@ public class WebDriverWrapper {
         LOG.info("Initializing PhantomJS webDriver.");
         try {
             WebDriverHttpParamsSetter.setSoTimeout(SOCKET_TIMEOUT_MS);
-            driver = new PhantomJSDriver();
+            DesiredCapabilities desiredCapabilities = new DesiredCapabilities();
+            String[] args = new String[]{"--disk-cache=true", "--proxy-type=none"};
+            desiredCapabilities.setCapability("phantomjs.cli.args", args);
+            desiredCapabilities.setCapability("phantomjs.ghostdriver.cli.args", args);
+            desiredCapabilities.setCapability("phantomjs.page.settings.loadImages", false);
+            driver = new PhantomJSDriver(desiredCapabilities);
             // driver = new FirefoxDriver();
             driver.manage().timeouts().pageLoadTimeout(WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             driver.manage().timeouts().setScriptTimeout(WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -34,7 +40,7 @@ public class WebDriverWrapper {
             start();
             return;
         }
-        doSleep(250);
+        doSleep(100);
     }
 
     public void shutdown() {
