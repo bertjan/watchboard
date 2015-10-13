@@ -28,16 +28,15 @@ public class PerformrPlugin implements WatchboardPlugin {
     private WebDriverWrapper wrappedDriver;
 
     public PerformrPlugin(WebDriverWrapper wrappedDriver) {
-        LOG.info("Starting Performr plugin");
+        LOG.info("Starting Performr plugin.");
         performrPlugin = Config.getInstance().getPlugin(Graph.Type.PERFORMR);
-
         this.wrappedDriver = wrappedDriver;
     }
 
 
     @Override
     public void performLogin() {
-        LOG.info("Logging in to performr");
+        LOG.info("Logging in to Performr.");
         WebDriver driver = wrappedDriver.getDriver();
 
         driver.manage().window().setSize(new Dimension(2000, 1000));
@@ -70,7 +69,7 @@ public class PerformrPlugin implements WatchboardPlugin {
         Config.getInstance().getDashboards().stream().forEach(
                 dashboard -> dashboard.getGraphs().stream().filter(graph -> graph.getType().equals(Graph.Type.PERFORMR)).forEach(graph -> {
                             if (!stop) {
-                                performSingleUpdate(graph);
+                                performSingleUpdate(graph, false);
                             }
                         }
                 ));
@@ -79,8 +78,8 @@ public class PerformrPlugin implements WatchboardPlugin {
     }
 
 
-    private void performSingleUpdate(Graph graph) {
-        LOG.debug("Starting update of {}", graph.getImagePath());
+    private void performSingleUpdate(Graph graph, boolean isRetry) {
+        LOG.debug("Starting update of {}.", graph.getImagePath());
         WebDriver driver = wrappedDriver.getDriver();
         driver.get(performrPlugin.getLoginUrl());
 
@@ -94,14 +93,19 @@ public class PerformrPlugin implements WatchboardPlugin {
                     found = true;
                 }
             }
+            LOG.debug("Did not find Performr component selection (yet), waiting.");
             doSleep(1000);
             long waitingForMS = System.currentTimeMillis() - loadingStart;
-            if ((waitingForMS / 1000) > 10) {
-                // Waited for over 10 seconds; break.
+            if ((waitingForMS / 1000) > 30) {
+                // Waited for over 30 seconds; break.
                 LOG.error("Timed out waiting for Performr component selection to appear.");
 
                 // Re-login to fix issue.
                 performLogin();
+                if (!isRetry) {
+                    // if this isn't a retry already, try once again.
+                    performSingleUpdate(graph, true);
+                }
                 return;
             }
 
