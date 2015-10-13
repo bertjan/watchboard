@@ -33,7 +33,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
     private WebDriverWrapper wrappedDriver;
 
     public CloudWatchPlugin(WebDriverWrapper wrappedDriver) {
-        LOG.info("Starting CloudWatch plugin");
+        LOG.info("Starting CloudWatch plugin.");
         cloudWatchPlugin = Config.getInstance().getPlugin(Graph.Type.CLOUDWATCH);
         this.wrappedDriver = wrappedDriver;
     }

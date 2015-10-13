@@ -26,6 +26,11 @@ public class WebDriverUtils {
                     element.getSize().getWidth(), element.getSize().getHeight());
             ImageIO.write(eleScreenshot, "png", screenshot);
             FileUtils.copyFile(screenshot, new File(fileName));
+            try {
+                screenshot.delete();
+            } catch (Exception e) {
+                LOG.error("Error while deleting screenshot: ", e);
+            }
             LOG.info("Updated {}.", fileName);
         } catch (Exception e) {
             LOG.error("Error while taking screenshot:", e);
