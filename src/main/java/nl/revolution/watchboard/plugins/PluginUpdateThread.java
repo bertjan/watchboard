@@ -37,20 +37,25 @@ public class PluginUpdateThread extends Thread {
         LOG.info("Starting main update loop.");
 
         while (!stop) {
-            long start = System.currentTimeMillis();
-            LOG.info("Performing update for all plugins.");
+            try {
+                long start = System.currentTimeMillis();
+                LOG.info("Performing update for all plugins.");
 
-            // Perform update for all plugins.
-            performrPlugin.performUpdate();
-            cloudWatchPlugin.performUpdate();
+                // Perform update for all plugins.
+                performrPlugin.performUpdate();
+                cloudWatchPlugin.performUpdate();
 
-            long end = System.currentTimeMillis();
-            LOG.info("Done performing update for all plugins. Update took " + ((end - start) / 1000) + " seconds.");
+                long end = System.currentTimeMillis();
+                LOG.info("Done performing update for all plugins. Update took " + ((end - start) / 1000) + " seconds.");
 
-            // Wait before fetching next update.
-            int backendUpdateIntervalSeconds = Config.getInstance().getInt(Config.BACKEND_UPDATE_INTERVAL_SECONDS);
-            LOG.debug("Sleeping {} seconds until next update.", backendUpdateIntervalSeconds);
-            doSleep(1000 * backendUpdateIntervalSeconds);
+                // Wait before fetching next update.
+                int backendUpdateIntervalSeconds = Config.getInstance().getInt(Config.BACKEND_UPDATE_INTERVAL_SECONDS);
+                LOG.debug("Sleeping {} seconds until next update.", backendUpdateIntervalSeconds);
+                doSleep(1000 * backendUpdateIntervalSeconds);
+            } catch (Exception e) {
+                LOG.error("Caught exception in main update loop: ", e);
+                restartWebDriverAndReLoginForAllPlugins();
+            }
 
             // Re-start webdriver and re-login every now and than to prevent session max duration issues.
             long currentSessionTimeInMinutes = ((System.currentTimeMillis() - currentSessionStartTimestamp) / 1000 / 60);
