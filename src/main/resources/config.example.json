@@ -26,7 +26,14 @@
         {
           "type" : "cloudwatch",
           "url" : "https://eu-west-1.console.aws.amazon.com/cloudwatch/home?region=eu-west-1#metrics:graph=!replace-url-with-cloudwatch-graph-url",
-          "id" : "myfirstdashboard-myfirstgraph",
+          "id" : "myfirstdashboard-myfirstcloudwatchgraph",
+          "browserWidth" : 1600,
+          "browserHeight" : 600
+        },
+        {
+          "type" : "performr",
+          "id" : "myfirstdashboard-myfirstperformr",
+          "components" : [ "Component 1", "Component 2" ],
           "browserWidth" : 1600,
           "browserHeight" : 600
         }
