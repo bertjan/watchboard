@@ -96,7 +96,7 @@ public class PerformrPlugin implements WatchboardPlugin {
             LOG.debug("Did not find Performr component selection (yet), waiting.");
             doSleep(1000);
             long waitingForMS = System.currentTimeMillis() - loadingStart;
-            if ((waitingForMS / 1000) > 30) {
+            if ((waitingForMS / 1000) > 10) {
                 // Waited for over 30 seconds; break.
                 LOG.error("Timed out waiting for Performr component selection to appear.");
 
