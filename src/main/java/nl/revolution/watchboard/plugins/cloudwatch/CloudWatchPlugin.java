@@ -62,7 +62,8 @@ public class CloudWatchPlugin implements WatchboardPlugin {
 
     @Override
     public void performUpdate() {
-        LOG.info("Performing update.");
+        long start = System.currentTimeMillis();
+        LOG.info("Performing update for CloudWatch graphs.");
 
         // Check for config file update.
         Config.getInstance().checkForConfigUpdate();
@@ -84,7 +85,9 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                             }
                         }
                 ));
-        LOG.info("Update finished.");
+
+        long end = System.currentTimeMillis();
+        LOG.info("Finished updating CloudWatch graphs. Update took " + ((end-start)/1000) + " seconds.");
     }
 
     @Override
