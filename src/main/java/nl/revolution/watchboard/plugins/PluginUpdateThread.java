@@ -37,9 +37,15 @@ public class PluginUpdateThread extends Thread {
         LOG.info("Starting main update loop.");
 
         while (!stop) {
+            long start = System.currentTimeMillis();
+            LOG.info("Performing update for all plugins.");
+
             // Perform update for all plugins.
             performrPlugin.performUpdate();
             cloudWatchPlugin.performUpdate();
+
+            long end = System.currentTimeMillis();
+            LOG.info("Done performing update for all plugins. Update took " + ((end - start) / 1000) + " seconds.");
 
             // Wait before fetching next update.
             int backendUpdateIntervalSeconds = Config.getInstance().getInt(Config.BACKEND_UPDATE_INTERVAL_SECONDS);
