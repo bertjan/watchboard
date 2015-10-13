@@ -4,6 +4,7 @@ import nl.revolution.watchboard.Config;
 import nl.revolution.watchboard.WebDriverHttpParamsSetter;
 import nl.revolution.watchboard.data.Graph;
 import nl.revolution.watchboard.data.Plugin;
+import nl.revolution.watchboard.plugins.WatchboardPlugin;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
@@ -25,14 +26,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-public class CloudWatchDataWorker extends Thread {
+public class CloudWatchPlugin implements WatchboardPlugin {
 
     private static final String MAXIMIZE_IMAGE_CONTENT = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAOCAYAAADwikbvAAAAHElEQVR42mNwcXH5Ty5mGHjNpIBRzSNUM92TJwDOA1GY0jTyxAAAAABJRU5ErkJggg==";
     private static final int MAX_GRAPH_LOADING_TIME_IN_SECONDS = 30;
     private static final int SOCKET_TIMEOUT_MS = 60 * 1000;
     private static final int WEBDRIVER_TIMEOUT_SECONDS = 60;
 
-    private static final Logger LOG = LoggerFactory.getLogger(CloudWatchDataWorker.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CloudWatchPlugin.class);
 
     private WebDriver driver;
     private long currentSessionStartTimestamp;
@@ -40,53 +41,56 @@ public class CloudWatchDataWorker extends Thread {
 
     private Plugin cloudWatchPlugin;
 
-    public void run() {
-        LOG.info("Starting CloudWatch data worker");
+    @Override
+    public void initialize() {
+        LOG.info("Starting CloudWatch plugin");
         cloudWatchPlugin = Config.getInstance().getPlugin(Graph.Type.CLOUDWATCH);
 
         initWebDriver();
         loginToAwsConsole(cloudWatchPlugin.getUsername(), cloudWatchPlugin.getPassword());
 
-        LOG.info("Starting main update loop.");
         currentSessionStartTimestamp = System.currentTimeMillis();
+    }
 
-        while (!stop) {
-            // Check for config file update.
-            Config.getInstance().checkForConfigUpdate();
+    @Override
+    public void performUpdate() {
+        LOG.info("Performing update.");
 
-            // Generate reports for all graphs for all dashboards.
-            LOG.info("Updating data from AWS.");
-            Config.getInstance().getDashboards().stream().forEach(
-                    dashboard -> dashboard.getGraphs().stream().filter(graph -> graph.getType().equals(Graph.Type.CLOUDWATCH)).forEach(graph -> {
-                                if (!stop) {
-                                    boolean executedSuccessfully = getReportScreenshot(graph.getUrl(),
-                                            graph.getBrowserWidth(),
-                                            graph.getBrowserHeight(),
-                                            graph.getImagePath());
-                                    if (!executedSuccessfully) {
-                                        // Something went wrong; start over.
-                                        restartWebDriverAndLoginToAWSConsole();
-                                    }
+        // Check for config file update.
+        Config.getInstance().checkForConfigUpdate();
+
+        // Generate reports for all graphs for all dashboards.
+        LOG.info("Updating data from AWS.");
+        Config.getInstance().getDashboards().stream().forEach(
+                dashboard -> dashboard.getGraphs().stream().filter(graph -> graph.getType().equals(Graph.Type.CLOUDWATCH)).forEach(graph -> {
+                            if (!stop) {
+                                boolean executedSuccessfully = getReportScreenshot(graph.getUrl(),
+                                        graph.getBrowserWidth(),
+                                        graph.getBrowserHeight(),
+                                        graph.getImagePath());
+                                if (!executedSuccessfully) {
+                                    // Something went wrong; start over.
+                                    restartWebDriverAndLoginToAWSConsole();
                                 }
                             }
-                    ));
-            if (stop) break;
+                        }
+                ));
 
-            // Wait before fetching next update.
-            int backendUpdateIntervalSeconds = Config.getInstance().getInt(Config.BACKEND_UPDATE_INTERVAL_SECONDS);
-            LOG.debug("Sleeping {} seconds until next update.", backendUpdateIntervalSeconds);
-            doSleep(1000 * backendUpdateIntervalSeconds);
+        // Re-start webdriver and re-login to AWS console every now and than to prevent session max duration issues.
+        long currentSessionTimeInMinutes = ((System.currentTimeMillis() - currentSessionStartTimestamp) / 1000 / 60);
+        LOG.info("currentSessionTimeInMinutes: " + currentSessionTimeInMinutes);
+        if (currentSessionTimeInMinutes > Config.getInstance().getInt(Config.MAX_SESSION_DURATION_MINUTES)) {
+            LOG.info("Max session duration exceeded, restarting browser.");
 
-            // Re-start webdriver and re-login to AWS console every now and than to prevent session max duration issues.
-            long currentSessionTimeInMinutes = ((System.currentTimeMillis() - currentSessionStartTimestamp) / 1000 / 60);
-            LOG.info("currentSessionTimeInMinutes: " + currentSessionTimeInMinutes);
-            if (currentSessionTimeInMinutes > Config.getInstance().getInt(Config.MAX_SESSION_DURATION_MINUTES)) {
-                LOG.info("Max session duration exceeded, restarting browser.");
-
-                // Restart; this also resets the session duration timer.
-                restartWebDriverAndLoginToAWSConsole();
-            }
+            // Restart; this also resets the session duration timer.
+            restartWebDriverAndLoginToAWSConsole();
         }
+
+    }
+
+    @Override
+    public void shutdown() {
+        this.stop = true;
 
         // Stop webdriver.
         shutdownWebDriver();
@@ -252,10 +256,6 @@ public class CloudWatchDataWorker extends Thread {
         } catch (InterruptedException e) {
             LOG.error("Yawn... sleep interrupted: ", e);
         }
-    }
-
-    public void doStop() {
-        this.stop = true;
     }
 
 }
