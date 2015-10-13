@@ -144,8 +144,13 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 return false;
             }
 
+            for (int i=0;i<10;i++) {
+                LOG.debug("flot-base displayed for " + filename + ": " + driver.findElement(By.className("flot-base")).isDisplayed());
+                doSleep(50);
+            }
+
             // TODO: replace this by proper detection instead of sleep.
-            doSleep(500);
+            //doSleep(500);
 
             try {
                 takeScreenShot(driver, driver.findElement(By.id("gwt-debug-graphContainer")), filename);
