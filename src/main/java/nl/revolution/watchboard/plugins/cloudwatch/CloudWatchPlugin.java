@@ -144,8 +144,8 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 return false;
             }
 
-            // TODO: replace this by detection instead of sleep.
-            doSleep(400);
+            // TODO: replace this by proper detection instead of sleep.
+            doSleep(500);
 
             try {
                 takeScreenShot(driver, driver.findElement(By.id("gwt-debug-graphContainer")), filename);

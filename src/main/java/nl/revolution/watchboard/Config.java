@@ -4,6 +4,7 @@ import nl.revolution.watchboard.data.Dashboard;
 import nl.revolution.watchboard.data.Graph;
 import nl.revolution.watchboard.data.Plugin;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -80,8 +81,8 @@ public class Config {
     private void intializeConfig() throws IOException, ParseException {
         readConfigFromDisk();
         checkConfig();
-        parseDashboards();
         parsePlugins();
+        parseDashboards();
         configFileLastModified = getConfigFile().lastModified();
 
         LOG.info("Config initialized. Configured {} dashboards with a total of {} graphs.",
@@ -163,20 +164,25 @@ public class Config {
             for (int graphIndex = 0; graphIndex < graphsJa.size(); graphIndex++) {
                 JSONObject graphObj = (JSONObject) graphsJa.get(graphIndex);
                 Graph graph = new Graph();
-                graph.setUrl(readString(graphObj, URL));
-                graph.setId(readString(graphObj, ID));
 
                 String typeStr = readString(graphObj, TYPE);
                 Graph.Type graphType = Graph.Type.fromString(typeStr);
                 graph.setType(graphType);
+
+                String url = readString(graphObj, URL);
+                if (Graph.Type.PERFORMR.equals(graph.getType()) && StringUtils.isEmpty(url)) {
+                    url = getPlugin(Graph.Type.PERFORMR).getLoginUrl();
+                }
+                graph.setUrl(url);
+                graph.setId(readString(graphObj, ID));
+
                 graph.setBrowserWidth(readInt(graphObj, BROWSER_WIDTH));
                 graph.setBrowserHeight(readInt(graphObj, BROWSER_HEIGHT));
                 graph.setImagePath(getString(TEMP_PATH) + "/" + readString(graphObj, ID).toString() + EXTENSION_PNG);
 
-
                 Object componentsObj = graphObj.get(COMPONENTS);
                 if (componentsObj != null) {
-                    graph.setComponents((List)componentsObj);
+                    graph.setComponents((List) componentsObj);
                 }
                 dashboard.getGraphs().add(graph);
             }
