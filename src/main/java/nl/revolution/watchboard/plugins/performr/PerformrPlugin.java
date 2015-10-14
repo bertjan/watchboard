@@ -37,22 +37,28 @@ public class PerformrPlugin implements WatchboardPlugin {
     @Override
     public void performLogin() {
         LOG.info("Logging in to Performr.");
-        WebDriver driver = wrappedDriver.getDriver();
+        try {
+            WebDriver driver = wrappedDriver.getDriver();
 
-        driver.manage().window().setSize(new Dimension(2000, 1000));
+            driver.manage().window().setSize(new Dimension(2000, 1000));
 
-        driver.get(performrPlugin.getLoginUrl());
+            driver.get(performrPlugin.getLoginUrl());
 
-        driver.findElement(By.id("username")).sendKeys(performrPlugin.getUsername());
-        doSleep(1000);
-        driver.findElement(By.id("password")).sendKeys(performrPlugin.getPassword());
-        doSleep(1000);
+            driver.findElement(By.id("username")).sendKeys(performrPlugin.getUsername());
+            doSleep(1000);
+            driver.findElement(By.id("password")).sendKeys(performrPlugin.getPassword());
+            doSleep(1000);
 
-        driver.findElements(By.tagName("input")).stream().forEach(input -> {
-            if ("Inloggen".equals(input.getAttribute("value"))) {
-                input.click();
-            }
-        });
+            driver.findElements(By.tagName("input")).stream().forEach(input -> {
+                if ("Inloggen".equals(input.getAttribute("value"))) {
+                    input.click();
+                }
+            });
+        } catch (Exception e) {
+            LOG.error("Error while logging in to Performr: ", e);
+        }
+
+        LOG.info("Logged in to Performr.");
 
     }
 
@@ -82,49 +88,53 @@ public class PerformrPlugin implements WatchboardPlugin {
 
 
     private void performSingleUpdate(Graph graph, boolean isRetry) {
-        LOG.debug("Starting update of {}.", graph.getImagePath());
-        WebDriver driver = wrappedDriver.getDriver();
-        driver.get(performrPlugin.getLoginUrl());
+        try {
+            LOG.debug("Starting update of {}.", graph.getImagePath());
+            WebDriver driver = wrappedDriver.getDriver();
+            driver.get(performrPlugin.getLoginUrl());
 
-        long loadingStart = System.currentTimeMillis();
-        boolean found = false;
-        while (!found) {
-            List<WebElement> spans = driver.findElements(By.tagName("span"));
-            for (WebElement span : spans) {
-                if ("Selecteer component".equals(span.getText())) {
-                    span.click();
-                    found = true;
+            long loadingStart = System.currentTimeMillis();
+            boolean found = false;
+            while (!found) {
+                List<WebElement> spans = driver.findElements(By.tagName("span"));
+                for (WebElement span : spans) {
+                    if ("Selecteer component".equals(span.getText())) {
+                        span.click();
+                        found = true;
+                    }
                 }
-            }
-            LOG.debug("Did not find Performr component selection (yet), waiting.");
-            doSleep(1000);
-            long waitingForMS = System.currentTimeMillis() - loadingStart;
-            if ((waitingForMS / 1000) > 10) {
-                // Waited for over 30 seconds; break.
-                LOG.error("Timed out waiting for Performr component selection to appear.");
+                LOG.debug("Did not find Performr component selection (yet), waiting.");
+                doSleep(1000);
+                long waitingForMS = System.currentTimeMillis() - loadingStart;
+                if ((waitingForMS / 1000) > 10) {
+                    // Waited for over 30 seconds; break.
+                    LOG.error("Timed out waiting for Performr component selection to appear.");
 
-                // Re-login to fix issue.
-                performLogin();
-                if (!isRetry) {
-                    // if this isn't a retry already, try once again.
-                    performSingleUpdate(graph, true);
+                    // Re-login to fix issue.
+                    performLogin();
+                    if (!isRetry) {
+                        // if this isn't a retry already, try once again.
+                        performSingleUpdate(graph, true);
+                    }
+                    return;
                 }
-                return;
+
             }
 
-        }
-
-        // Disable all components.
-        getComponentCheckbox("Alle").click();
-        doSleep(500);
-
-        // Select project components.
-        graph.getComponents().stream().forEach(component -> {
-            getComponentCheckbox(component).click();
+            // Disable all components.
+            getComponentCheckbox("Alle").click();
             doSleep(500);
-        });
 
-        getPerformrScreenshot(graph.getBrowserWidth(), graph.getBrowserHeight(), graph.getImagePath());
+            // Select project components.
+            graph.getComponents().stream().forEach(component -> {
+                getComponentCheckbox(component).click();
+                doSleep(500);
+            });
+
+            getPerformrScreenshot(graph.getBrowserWidth(), graph.getBrowserHeight(), graph.getImagePath());
+        } catch (Exception e) {
+            LOG.error("Exception while performing Performr update: ", e);
+        }
     }
 
 
