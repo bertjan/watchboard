@@ -4,7 +4,7 @@ function endsWith(str, suffix) {
 
 function getHashParam() {
   var vars = [], hash;
-  var hashes = location.hash.split('|'); //window.location.href.split('#')[0].slice(window.location.href.indexOf('?') + 1).split('&');
+  var hashes = decodeURIComponent(location.hash).split('|'); //window.location.href.split('#')[0].slice(window.location.href.indexOf('?') + 1).split('&');
   for (var i = 0; i < hashes.length; i++) {
     hash = hashes[i].split('=');
     key = hash[0];
