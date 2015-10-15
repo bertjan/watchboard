@@ -10,7 +10,6 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -147,12 +146,9 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 return false;
             }
 
-
-            for (int i=0;i<5;i++) {
-                WebElement canvas = driver.findElement(By.className("flot-base"));
-                LOG.info("Canvas isDisplayed:" + canvas.isDisplayed() + ", isEnabled:" + canvas.isEnabled());
-                doSleep(50);
-            }
+            // Wait until flot-base element is present.
+            driver.findElement(By.className("flot-base"));
+            // doSleep(250);
 
             try {
                 takeScreenShot(driver, driver.findElement(By.id("gwt-debug-graphContainer")), filename);
