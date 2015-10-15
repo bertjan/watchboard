@@ -18,3 +18,22 @@ function getHashParam() {
   }
   return vars;
 }
+
+function setEqualHeight(group) {
+  var tallest = 0;
+  group.each(function() {
+    var thisHeight = $(this).outerHeight();
+    if(thisHeight > tallest) {
+      tallest = thisHeight;
+    }
+  });
+  if (group.height() != tallest) {
+    group.height(tallest);
+  }
+
+}
+
+function setGraphsToEqualHeight() {
+  setEqualHeight($("#images li"));
+}
+

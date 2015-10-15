@@ -77,5 +77,10 @@ html, body, div, span {
     padding-left: 10px;
 }
 
+#images ul {
+    margin: 3px 0 0 3px;
+    padding: 0px;
+}
 #images { list-style-type: none; margin: 0; padding: 0  }
-#images li { float: left; text-align: left; margin-right: 4px;}
+#images li { float: left; text-align: left; margin-right: 4px; margin-top: 4px; overflow: auto; }
+

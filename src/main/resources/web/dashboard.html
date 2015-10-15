@@ -16,7 +16,7 @@
     var numberOfColumns;
 
     function setURLHash() {
-        var imageOrder = $('#images').children('li').map(function(){
+        var imageOrder = $('#imageList').children('li').map(function(){
             return $(this).find("img").attr('id')
         }).get();
         location.hash = 'columns=' + numberOfColumns + "|" + "imageOrder=" + imageOrder;
@@ -82,7 +82,6 @@
                     });
                 }
 
-                $("#images").html("<ul>");
                 for (var i = 0; i < data.images.length; i++) {
                     image = data.images[i];
                     $("#images").html($("#images").html() +
@@ -94,8 +93,8 @@
                             ">" +
                             "</a></li>");
                 }
-                $("#images").html($("#images").html() + "</ul>");
-                $("#images").sortable({
+                $("#images").html("<ul id=\"imageList\">" + $("#images").html() + "</ul>");
+                $("#images ul").sortable({
                     deactivate: function( event, ui ) {
                         setURLHash();
                     }
@@ -132,10 +131,20 @@
                             $("#lastUpdated").text(new Date(lastUpdated));
                         }
                     }
+
+                    // Make sure all images have the same height.
+                    setGraphsToEqualHeight();
                 }
             });
             // Scan each second for updated images.
         }, 1000);
+
+        // Refresh page after resize. Don't to this instantly to prevent flickering.
+        var resizeTimeout;
+        window.onresize = function(){
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(refreshPage, 100);
+        };
 
     });
 </script>
