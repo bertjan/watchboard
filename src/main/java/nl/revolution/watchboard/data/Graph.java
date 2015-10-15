@@ -19,7 +19,7 @@ public class Graph {
     public static final String COMPONENTS = "components";
 
     public enum Type {
-        CLOUDWATCH, PERFORMR;
+        CLOUDWATCH, PERFORMR, DISK;
 
         public static Type fromString(String typeStr) {
             if (StringUtils.isEmpty(typeStr)) {
@@ -30,6 +30,8 @@ public class Graph {
                 return CLOUDWATCH;
             } else if (PERFORMR.toString().equals(typeStr)) {
                 return PERFORMR;
+            } else if (DISK.toString().equals(typeStr)) {
+                return DISK;
             }
             return null;
         }

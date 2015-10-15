@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Config {
@@ -128,19 +129,22 @@ public class Config {
         JSONArray dashboards = (JSONArray)config.get("dashboards");
         dashboards.stream().forEach(dashboard -> {
             REQUIRED_CONFIG_KEYS_DASHBOARD.stream().forEach(requiredKey -> {
-                if (!((JSONObject)dashboard).containsKey(requiredKey)) {
+                if (!((JSONObject) dashboard).containsKey(requiredKey)) {
                     throw new RuntimeException("Required config key '" + requiredKey +
-                            "' is missing for dashboard '" + ((JSONObject)dashboard).get("id") + "'.");
+                            "' is missing for dashboard '" + ((JSONObject) dashboard).get("id") + "'.");
                 }
 
                 // Check graphs config.
-                JSONArray graphs = (JSONArray)((JSONObject)dashboard).get("graphs");
+                JSONArray graphs = (JSONArray) ((JSONObject) dashboard).get("graphs");
                 graphs.stream().forEach(graph -> {
                     REQUIRED_CONFIG_KEYS_GRAPH.stream().forEach(requiredGraphKey -> {
-                        if (!((JSONObject)graph).containsKey(requiredGraphKey)) {
-                            throw new RuntimeException("Required config key '" + requiredGraphKey +
-                                    "' is missing for dashboard '" + ((JSONObject)dashboard).get("id") +
-                                    "', graph '" + ((JSONObject)graph).get("id") + "'.");
+                        if (!((JSONObject) graph).containsKey(requiredGraphKey)) {
+                            // Graph type 'disk' has almost no requirements.
+                            if (!"disk".equals(((JSONObject) graph).get("type"))) {
+                                throw new RuntimeException("Required config key '" + requiredGraphKey +
+                                        "' is missing for dashboard '" + ((JSONObject) dashboard).get("id") +
+                                        "', graph '" + ((JSONObject) graph).get("id") + "'.");
+                            }
                         }
                     });
                 });
@@ -188,6 +192,19 @@ public class Config {
             }
             dashboards.add(dashboard);
         }
+
+        // Postprocess step: try to find a matching URL for each graph of type 'disk'.
+        dashboards.forEach(dashboard -> dashboard.getGraphs().forEach(graphWithDiskSource -> {
+            Optional<Graph> graphWithMatchingId =
+                    dashboards.stream()
+                            .map(d -> d.getGraphs())
+                            .flatMap(g -> g.stream())
+                            .filter(graph -> graph.getId().equals(graphWithDiskSource.getId()))
+                            .findFirst();
+            if (graphWithMatchingId.isPresent()) {
+                graphWithDiskSource.setUrl(graphWithMatchingId.get().getUrl());
+            }
+        }));
     }
 
     private void parsePlugins() {

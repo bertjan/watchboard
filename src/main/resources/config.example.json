@@ -38,6 +38,16 @@
           "browserHeight" : 600
         }
       ]
+    },
+    {
+      "id" : "seconddashboard",
+      "title" : "Dashboard with source from other dashboard",
+      "graphs" : [
+        {
+          "type" : "myfirstdashboard-myfirstcloudwatchgraph",
+          "id" : "p3-prdAppCPUIncomingNetwork36hrs"
+        }
+      ]
     }
   ]
 }
