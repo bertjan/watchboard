@@ -7,16 +7,17 @@
       "type" : "cloudwatch",
       "username" : "johndoe",
       "password" : "secret",
-      "login.url" : "https://my-organization.signin.aws.amazon.com"
+      "login.url" : "https://my-organization.signin.aws.amazon.com",
+      "backendUpdateIntervalSeconds" : 30
     },
     {
       "type" : "performr",
       "username" : "johndoe",
       "password" : "secret",
-      "login.url" : "https://url-to.performr.com"
+      "login.url" : "https://url-to.performr.com",
+      "backendUpdateIntervalSeconds" : 30
     }
   ],
-  "backendUpdateIntervalSeconds" : 90,
   "maxSessionDurationMinutes" : 30,
   "dashboards" : [
     {

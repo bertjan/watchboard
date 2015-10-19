@@ -44,7 +44,7 @@ public class Config {
     public static final String DEFAULT_NUMBER_OF_COLUMNS = "defaultNumberOfColumns";
 
     private static final List<String> REQUIRED_CONFIG_KEYS_GLOBAL = Arrays.asList(HTTP_PORT, WEB_CONTEXTROOT,
-            TEMP_PATH, BACKEND_UPDATE_INTERVAL_SECONDS, MAX_SESSION_DURATION_MINUTES, DASHBOARDS, PLUGINS);
+            TEMP_PATH, MAX_SESSION_DURATION_MINUTES, DASHBOARDS, PLUGINS);
     private static final List<String> REQUIRED_CONFIG_KEYS_DASHBOARD = Arrays.asList(ID, TITLE, GRAPHS);
     private static final List<String> REQUIRED_CONFIG_KEYS_GRAPH = Arrays.asList(TYPE, ID, BROWSER_WIDTH, BROWSER_HEIGHT);
 
@@ -218,6 +218,7 @@ public class Config {
             plugin.setLoginUrl(readString(pluginJo, LOGIN_URL));
             plugin.setUsername(readString(pluginJo, USERNAME));
             plugin.setPassword(readString(pluginJo, PASSWORD));
+            plugin.setUpdateIntervalSeconds(readInt(pluginJo, BACKEND_UPDATE_INTERVAL_SECONDS));
             plugins.add(plugin);
         });
     }

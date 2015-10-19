@@ -34,10 +34,9 @@ public class CloudWatchPlugin implements WatchboardPlugin {
     private Plugin cloudWatchPlugin;
     private WebDriverWrapper wrappedDriver;
 
-    public CloudWatchPlugin(WebDriverWrapper wrappedDriver) {
+    public CloudWatchPlugin() {
         LOG.info("Starting CloudWatch plugin.");
         cloudWatchPlugin = Config.getInstance().getPlugin(Graph.Type.CLOUDWATCH);
-        this.wrappedDriver = wrappedDriver;
     }
 
     @Override
@@ -199,5 +198,21 @@ public class CloudWatchPlugin implements WatchboardPlugin {
         // Back to original timeout.
         driver.manage().timeouts().pageLoadTimeout(WebDriverWrapper.WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
+
+    @Override
+    public void setDriver(WebDriverWrapper driver) {
+        this.wrappedDriver = driver;
+    }
+
+    @Override
+    public String getName() {
+        return "CloudWatch";
+    }
+
+    @Override
+    public int getUpdateInterval() {
+        return cloudWatchPlugin.getUpdateIntervalSeconds();
+    }
+
 
 }

@@ -1,8 +1,6 @@
 package nl.revolution.watchboard.plugins;
 
 import nl.revolution.watchboard.Config;
-import nl.revolution.watchboard.plugins.cloudwatch.CloudWatchPlugin;
-import nl.revolution.watchboard.plugins.performr.PerformrPlugin;
 import nl.revolution.watchboard.utils.WebDriverWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,47 +12,47 @@ public class PluginUpdateThread extends Thread {
     private static final Logger LOG = LoggerFactory.getLogger(PluginUpdateThread.class);
     private WebDriverWrapper wrappedDriver;
 
-    private WatchboardPlugin cloudWatchPlugin;
-    private WatchboardPlugin performrPlugin;
+    private WatchboardPlugin watchboardPlugin;
     private boolean stop;
     private long currentSessionStartTimestamp;
+    private String pluginName;
+
+    public PluginUpdateThread(WatchboardPlugin plugin) {
+        this.watchboardPlugin = plugin;
+        this.pluginName = watchboardPlugin.getName();
+    }
 
 
     public void run() {
-        LOG.info("Starting data worker");
+        LOG.info("Starting data worker for plugin " + pluginName);
         currentSessionStartTimestamp = System.currentTimeMillis();
 
         wrappedDriver = new WebDriverWrapper();
         wrappedDriver.start();
 
-        // TODO: make this a list of plugins based on the plugin data from config
-        cloudWatchPlugin = new CloudWatchPlugin(wrappedDriver);
-        cloudWatchPlugin.performLogin();
+        watchboardPlugin.setDriver(wrappedDriver);
+        watchboardPlugin.performLogin();
 
-        performrPlugin = new PerformrPlugin(wrappedDriver);
-        performrPlugin.performLogin();
-
-        LOG.info("Starting main update loop.");
+        LOG.info("Starting main update loop for plugin " + pluginName);
 
         while (!stop) {
             try {
                 long start = System.currentTimeMillis();
-                LOG.info("Performing update for all plugins.");
+                LOG.info("Performing update for plugin " + pluginName);
 
-                // Perform update for all plugins.
-                performrPlugin.performUpdate();
-                cloudWatchPlugin.performUpdate();
+                // Perform update.
+                watchboardPlugin.performUpdate();
 
                 long end = System.currentTimeMillis();
-                LOG.info("Done performing update for all plugins. Update took " + ((end - start) / 1000) + " seconds.");
+                LOG.info("Done performing update for plugin " + pluginName + ". Update took " + ((end - start) / 1000) + " seconds.");
 
                 // Wait before fetching next update.
-                int backendUpdateIntervalSeconds = Config.getInstance().getInt(Config.BACKEND_UPDATE_INTERVAL_SECONDS);
-                LOG.debug("Sleeping {} seconds until next update.", backendUpdateIntervalSeconds);
+                int backendUpdateIntervalSeconds = watchboardPlugin.getUpdateInterval();
+                LOG.debug("Sleeping {} seconds until next update for plugin " + pluginName + ".", backendUpdateIntervalSeconds);
                 doSleep(1000 * backendUpdateIntervalSeconds);
             } catch (Exception e) {
-                LOG.error("Caught exception in main update loop: ", e);
-                restartWebDriverAndReLoginForAllPlugins();
+                LOG.error("Caught exception in main update loop for plugin " + pluginName + ": ", e);
+                restartWebDriverAndReLogin();
             }
 
             // Re-start webdriver and re-login every now and than to prevent session max duration issues.
@@ -64,21 +62,19 @@ public class PluginUpdateThread extends Thread {
                 LOG.info("Max session duration exceeded, restarting browser.");
 
                 // Restart; this also resets the session duration timer.
-                restartWebDriverAndReLoginForAllPlugins();
+                restartWebDriverAndReLogin();
             }
         }
     }
 
     public void doStop() {
         stop = true;
-        cloudWatchPlugin.shutdown();
-        performrPlugin.shutdown();
+        watchboardPlugin.shutdown();
     }
 
-    private void restartWebDriverAndReLoginForAllPlugins() {
+    private void restartWebDriverAndReLogin() {
         wrappedDriver.restart();
-        cloudWatchPlugin.performLogin();
-        performrPlugin.performLogin();
+        watchboardPlugin.performLogin();
         currentSessionStartTimestamp = System.currentTimeMillis();
     }
 

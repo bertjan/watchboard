@@ -6,6 +6,7 @@ public class Plugin {
     private String username;
     private String password;
     private String loginUrl;
+    private int updateIntervalSeconds;
 
     public Graph.Type getType() {
         return type;
@@ -39,4 +40,11 @@ public class Plugin {
         this.loginUrl = loginUrl;
     }
 
+    public int getUpdateIntervalSeconds() {
+        return updateIntervalSeconds;
+    }
+
+    public void setUpdateIntervalSeconds(int updateIntervalSeconds) {
+        this.updateIntervalSeconds = updateIntervalSeconds;
+    }
 }

@@ -27,10 +27,9 @@ public class PerformrPlugin implements WatchboardPlugin {
     private Plugin performrPlugin;
     private WebDriverWrapper wrappedDriver;
 
-    public PerformrPlugin(WebDriverWrapper wrappedDriver) {
+    public PerformrPlugin() {
         LOG.info("Starting Performr plugin.");
         performrPlugin = Config.getInstance().getPlugin(Graph.Type.PERFORMR);
-        this.wrappedDriver = wrappedDriver;
     }
 
 
@@ -103,7 +102,7 @@ public class PerformrPlugin implements WatchboardPlugin {
                         found = true;
                     }
                 }
-                LOG.debug("Did not find Performr component selection (yet), waiting.");
+                // LOG.debug("Did not find Performr component selection (yet), waiting.");
                 doSleep(1000);
                 long waitingForMS = System.currentTimeMillis() - loadingStart;
                 if ((waitingForMS / 1000) > 10) {
@@ -176,5 +175,19 @@ public class PerformrPlugin implements WatchboardPlugin {
         this.stop = true;
     }
 
+    @Override
+    public void setDriver(WebDriverWrapper driver) {
+        this.wrappedDriver = driver;
+    }
+
+    @Override
+    public String getName() {
+        return "Performr";
+    }
+
+    @Override
+    public int getUpdateInterval() {
+        return performrPlugin.getUpdateIntervalSeconds();
+    }
 
 }
