@@ -57,6 +57,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
             for (int i=0; i<10; i++) {
                 if (driver.getCurrentUrl().contains("signin.aws.amazon.com")) {
                     // Still on the login page.
+                    LOG.debug("Waiting for login process to complete.");
                     doSleep(500);
                 } else {
                     break;
@@ -210,7 +211,6 @@ public class CloudWatchPlugin implements WatchboardPlugin {
         // Wait for the initial page to load in the browser.
         for (int i=0; i<10; i++) {
             if (!driver.getCurrentUrl().equals(url)) {
-                LOG.debug("Waiting for page to load.");
                 doSleep(500);
             } else {
                 break;
