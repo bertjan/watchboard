@@ -208,15 +208,6 @@ public class CloudWatchPlugin implements WatchboardPlugin {
             // Expected, do nothing.
         }
 
-        // Wait for the initial page to load in the browser.
-        for (int i=0; i<10; i++) {
-            if (!driver.getCurrentUrl().equals(url)) {
-                doSleep(500);
-            } else {
-                break;
-            }
-        }
-
         // Back to original timeout.
         driver.manage().timeouts().pageLoadTimeout(WebDriverWrapper.WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
