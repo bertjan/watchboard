@@ -52,6 +52,17 @@ public class CloudWatchPlugin implements WatchboardPlugin {
             driver.findElement(By.id("username")).sendKeys(cloudWatchPlugin.getUsername());
             driver.findElement(By.id("password")).sendKeys(cloudWatchPlugin.getPassword());
             driver.findElement(By.id("signin_button")).click();
+
+            // Wait for the login request to complete.
+            for (int i=0; i<10; i++) {
+                if (driver.getCurrentUrl().contains("signin.aws.amazon.com")) {
+                    // Still on the login page.
+                    doSleep(500);
+                } else {
+                    break;
+                }
+            }
+
         } catch (Exception e) {
             LOG.error("Error logging in to AWS console: ", e);
             LOG.info("Sleeping 10 seconds and trying again.");
@@ -195,6 +206,17 @@ public class CloudWatchPlugin implements WatchboardPlugin {
         } catch (TimeoutException ignored) {
             // Expected, do nothing.
         }
+
+        // Wait for the initial page to load in the browser.
+        for (int i=0; i<10; i++) {
+            if (!driver.getCurrentUrl().equals(url)) {
+                LOG.debug("Waiting for page to load.");
+                doSleep(500);
+            } else {
+                break;
+            }
+        }
+
         // Back to original timeout.
         driver.manage().timeouts().pageLoadTimeout(WebDriverWrapper.WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
