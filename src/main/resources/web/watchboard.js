@@ -55,9 +55,11 @@ function setEqualHeight(group) {
   });
 
   // Set height of all items in group to tallest item.
-  group.each(function() {
-    $(this).outerHeight(tallest);
-  });
+  if (tallest > 0) {
+    group.each(function () {
+      $(this).outerHeight(tallest);
+    });
+  }
 
 }
 
@@ -128,8 +130,13 @@ function performInitialGraphsRender() {
       $("#images ul").sortable({
         deactivate: function( event, ui ) {
           setURLHash();
-        }
+        },
+        opacity: 0.7
       });
+
+      window.setTimeout(function() {
+        setGraphsToEqualHeight();
+      }, 100);
 
     }
   });

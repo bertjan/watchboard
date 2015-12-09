@@ -126,8 +126,13 @@ public class PerformrPlugin implements WatchboardPlugin {
 
             // Select project components.
             graph.getComponents().stream().forEach(component -> {
-                getComponentCheckbox(component).click();
-                doSleep(500);
+                WebElement componentCheckbox = getComponentCheckbox(component);
+                if (componentCheckbox != null) {
+                    componentCheckbox.click();
+                    doSleep(500);
+                } else {
+                    LOG.error("Component '" + component + "' not found!");
+                }
             });
 
             getPerformrScreenshot(graph.getBrowserWidth(), graph.getBrowserHeight(), graph.getImagePath());
