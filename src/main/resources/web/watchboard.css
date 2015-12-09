@@ -82,5 +82,5 @@ html, body, div, span {
     padding: 0px;
 }
 #images { list-style-type: none; margin: 0; margin-top: 5px; padding: 0  }
-#images li { float: left; text-align: left; margin-right: 4px; margin-top: 0px; overflow: auto; }
+#images li { float: left; text-align: left; margin-right: 10px; margin-top: 0px; overflow: auto; }
 
