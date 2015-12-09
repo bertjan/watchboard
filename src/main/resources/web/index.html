@@ -9,31 +9,7 @@
 <script type="text/javascript">
     $(document).ready(function(){
         // Initial rendering.
-        $.ajax({
-            url: 'api/v1/dashboards',
-            success:function(data) {
-
-                data.dashboards.sort(function(dash1, dash2) {
-                    return dash1.id.localeCompare(dash2.id);
-                });
-
-                $("#dashboards").html("<ul>");
-                for (var i = 0; i < data.dashboards.length; i++) {
-                    dashboard = data.dashboards[i];
-                    dashboardLink = dashboard.id;
-                    if (dashboard.defaultNumberOfColumns) {
-                        dashboardLink += "#columns=" + dashboard.defaultNumberOfColumns;
-                    }
-
-                    $("#dashboards").html($("#dashboards").html() +
-                            "<li><a href=\""+ dashboardLink + "\">" + dashboard.title + "</a></li>");
-                }
-                $("#dashboards").html($("#dashboards").html() + "</ul>")
-            },
-            error:function(jqXHR, textStatus,errorThrown) {
-                $("#dashboards").text("No dashboards found.");
-            }
-        });
+        renderDashboardList();
     });
 </script>
 
