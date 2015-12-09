@@ -49,8 +49,6 @@ function setEqualHeight(group) {
   var tallest = 0;
   group.each(function() {
     var thisHeight = $(this).outerHeight();
-    var id = $(this).children(":first").children(":first").attr('id');
-    console.log(id + ' height: ' + thisHeight + ', tallest: ' + tallest);
     if(thisHeight > tallest) {
       tallest = thisHeight;
     }
@@ -59,12 +57,7 @@ function setEqualHeight(group) {
   // Set height of all items in group to tallest item.
   if (tallest > 0) {
     group.each(function () {
-      if ($(this).outerHeight() != tallest) {
-        var id = $(this).children(":first").children(":first").attr('id');
-        console.log('setting ' + id + ' height from ' + $(this).outerHeight() + ' to ' + tallest);
-        $(this).outerHeight(tallest);
-      }
-
+      $(this).outerHeight(tallest);
     });
   }
 
@@ -134,15 +127,18 @@ function performInitialGraphsRender() {
       }
       $("#images").html("<ul id=\"imageList\">" + $("#images").html() + "</ul>");
 
-      $("#images ul").sortable({
-        deactivate: function( event, ui ) {
-          setURLHash();
-        },
-        opacity: 0.7
-      });
-
-      window.setTimeout(function() {
+      setTimeout(function() {
+        // After initial render, set graphs to equal height.
         setGraphsToEqualHeight();
+
+        // Enable dragging/sorting of graphs.
+        $("#images ul").sortable({
+          deactivate: function() {
+            setURLHash();
+          },
+          opacity: 0.7
+        });
+
       }, 100);
 
     }
@@ -215,9 +211,6 @@ function startGraphUpdateLoop() {
             $("#lastUpdated").text(new Date(lastUpdated));
           }
         }
-
-        // Make sure all images have the same height.
-        setGraphsToEqualHeight();
       }
     });
     // Scan each second for updated images.
