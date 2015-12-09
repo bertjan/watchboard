@@ -57,7 +57,11 @@ function setEqualHeight(group) {
   // Set height of all items in group to tallest item.
   if (tallest > 0) {
     group.each(function () {
-      $(this).outerHeight(tallest);
+      if ($(this).outerHeight() != tallest) {
+        console.log('setting height from ' + $(this).outerHeight() + ' to ' + tallest);
+        $(this).outerHeight(tallest);
+      }
+
     });
   }
 
