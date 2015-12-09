@@ -49,6 +49,7 @@ function setEqualHeight(group) {
   var tallest = 0;
   group.each(function() {
     var thisHeight = $(this).outerHeight();
+    console.log('my height: ' + thisHeight + ', tallest: ' + tallest);
     if(thisHeight > tallest) {
       tallest = thisHeight;
     }
