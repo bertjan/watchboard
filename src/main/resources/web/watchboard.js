@@ -20,7 +20,7 @@ function setColumns(numCols) {
 
 function refreshPage() {
   location.reload(true);
-  lastAppRefresh = new Date().getMilliseconds();
+  lastAppRefresh = new Date().getTime();
 }
 
 function endsWith(str, suffix) {
@@ -94,12 +94,56 @@ function renderDashboardList() {
   });
 }
 
+
+function performInitialGraphsRender() {
+  $.ajax({
+    url: '../api/v1/status/' + dashboardId,
+    success: function (data) {
+      appVersion = data.appVersion;
+      configLastUpdated = data.configLastUpdated;
+      $("#title").text(data.title);
+
+      // Sort images based on order in url hash.
+      var imageOrder = getHashParam()["imageOrder"];
+      if(imageOrder) {
+        data.images.sort(function (a, b) {
+          return imageOrder.indexOf(a.id) < imageOrder.indexOf(b.id) ? -1 : 1;
+        });
+      }
+
+      $("#images").html("");
+      for (var i = 0; i < data.images.length; i++) {
+        image = data.images[i];
+        $("#images").html($("#images").html() +
+          "<li class=\"ui-state-default\" style=\"width: " + imageWidthPercentage + "%\"><a href=\"" + image.url + "\" target=\"_blank\">" +
+          "<img style=\"width: 100%\" id=\"" + image.id + "\" " +
+          "data-lastmodified=\"" + image.lastModified + "\" " +
+          "src=\"" + image.filename + "\" " +
+          "title=\"" + 'Last updated: ' + new Date(image.lastModified) + "\" " +
+          ">" +
+          "</a></li>");
+      }
+      $("#images").html("<ul id=\"imageList\">" + $("#images").html() + "</ul>");
+
+      $("#images ul").sortable({
+        deactivate: function( event, ui ) {
+          setURLHash();
+        }
+      });
+
+    }
+  });
+
+}
+
+
 function startGraphUpdateLoop() {
-  var pathname = window.location.pathname;
+
+  pathname = window.location.pathname;
   if (endsWith(pathname, '/')) {
     pathname = pathname.substring(0, pathname.length - 1);
   }
-  var dashboardId = pathname.substring(pathname.lastIndexOf('/') + 1, pathname.length);
+  dashboardId = pathname.substring(pathname.lastIndexOf('/') + 1, pathname.length);
 
   // Read number of columns from URL parameter.
   numberOfColumns = getHashParam()["columns"];
@@ -123,46 +167,10 @@ function startGraphUpdateLoop() {
     }
   }
   $("#columnSelection").html(columnSelectionHTML);
-  var imageWidthPercentage = (100 / numberOfColumns) - 1;
+  imageWidthPercentage = (100 / numberOfColumns) - 1;
 
   // Initial rendering.
-  $.ajax({
-    url: '../api/v1/status/' + dashboardId,
-    success: function (data) {
-      appVersion = data.appVersion;
-      configLastUpdated = data.configLastUpdated;
-      $("#title").text(data.title);
-
-      // Sort images based on order in url hash.
-      var imageOrder = getHashParam()["imageOrder"];
-      if(imageOrder) {
-        data.images.sort(function (a, b) {
-          return imageOrder.indexOf(a.id) < imageOrder.indexOf(b.id) ? -1 : 1;
-        });
-      }
-
-      for (var i = 0; i < data.images.length; i++) {
-        image = data.images[i];
-        $("#images").html($("#images").html() +
-          "<li class=\"ui-state-default\" style=\"width: " + imageWidthPercentage + "%\"><a href=\"" + image.url + "\" target=\"_blank\">" +
-          "<img style=\"width: 100%\" id=\"" + image.id + "\" " +
-          "data-lastmodified=\"" + image.lastModified + "\" " +
-          "src=\"" + image.filename + "\" " +
-          "title=\"" + 'Last updated: ' + new Date(image.lastModified) + "\" " +
-          ">" +
-          "</a></li>");
-      }
-      $("#images").html("<ul id=\"imageList\">" + $("#images").html() + "</ul>");
-
-      $("#images ul").sortable({
-        deactivate: function( event, ui ) {
-          setURLHash();
-        }
-      });
-
-
-    }
-  });
+  performInitialGraphsRender();
 
   // Periodic update.
   setInterval(function () {
@@ -201,11 +209,9 @@ function startGraphUpdateLoop() {
     // Scan each second for updated images.
   }, 1000);
 
-  // Refresh page after resize. Don't to this instantly to prevent flickering.
-  var resizeTimeout;
-  window.onresize = function(){
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(refreshPage, 100);
-  };
+  // Refresh page after resize to trigger re-render.
+  $(window).bind("debouncedresize", function() {
+    performInitialGraphsRender();
+  });
 
 }
