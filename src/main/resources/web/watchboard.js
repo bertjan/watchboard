@@ -29,7 +29,7 @@ function endsWith(str, suffix) {
 
 function getHashParam() {
   var vars = [], hash;
-  var hashes = decodeURIComponent(location.hash).split('|'); //window.location.href.split('#')[0].slice(window.location.href.indexOf('?') + 1).split('&');
+  var hashes = decodeURIComponent(location.hash).split('|');
   for (var i = 0; i < hashes.length; i++) {
     hash = hashes[i].split('=');
     key = hash[0];
@@ -113,33 +113,37 @@ function performInitialGraphsRender() {
         });
       }
 
-      $("#images").html("");
+      imageHTML = "";
       for (var i = 0; i < data.images.length; i++) {
         image = data.images[i];
-        $("#images").html($("#images").html() +
+        imageHTML +=
           "<li class=\"ui-state-default\" style=\"width: " + imageWidthPercentage + "%\"><a href=\"" + image.url + "\" target=\"_blank\">" +
           "<img style=\"width: 100%\" id=\"" + image.id + "\" " +
           "data-lastmodified=\"" + image.lastModified + "\" " +
           "src=\"" + image.filename + "\" " +
           "title=\"" + 'Last updated: ' + new Date(image.lastModified) + "\" " +
           ">" +
-          "</a></li>");
+          "</a></li>";
       }
-      $("#images").html("<ul id=\"imageList\">" + $("#images").html() + "</ul>");
+
+      imageHTML = '<ul id=\"imageList\">' + imageHTML + '</ul>';
+      $("#images").html(imageHTML);
 
       setTimeout(function() {
         // After initial render, set graphs to equal height.
         setGraphsToEqualHeight();
+      }, 200);
 
+      setTimeout(function() {
         // Enable dragging/sorting of graphs.
         $("#images ul").sortable({
-          deactivate: function() {
+          deactivate: function () {
             setURLHash();
           },
           opacity: 0.7
         });
+      }, 500);
 
-      }, 100);
 
     }
   });
