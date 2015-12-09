@@ -20,6 +20,7 @@ function getHashParam() {
 }
 
 function setEqualHeight(group) {
+  // Determine tallest item in group.
   var tallest = 0;
   group.each(function() {
     var thisHeight = $(this).outerHeight();
@@ -27,9 +28,11 @@ function setEqualHeight(group) {
       tallest = thisHeight;
     }
   });
-  if (group.height() != tallest) {
-    group.height(tallest);
-  }
+
+  // Set height of all items in group to tallest item.
+  group.each(function() {
+    $(this).outerHeight(tallest);
+  });
 
 }
 
