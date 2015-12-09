@@ -81,6 +81,6 @@ html, body, div, span {
     margin: 3px 0 0 3px;
     padding: 0px;
 }
-#images { list-style-type: none; margin: 0; padding: 0  }
-#images li { float: left; text-align: left; margin-right: 4px; margin-top: 4px; overflow: auto; }
+#images { list-style-type: none; margin: 0; margin-top: 5px; padding: 0  }
+#images li { float: left; text-align: left; margin-right: 4px; margin-top: 0px; overflow: auto; }
 

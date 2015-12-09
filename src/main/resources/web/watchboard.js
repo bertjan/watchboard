@@ -48,16 +48,16 @@ function setEqualHeight(group) {
   // Determine tallest item in group.
   var tallest = 0;
   group.each(function() {
-    var thisHeight = $(this).outerHeight();
-    if(thisHeight > tallest) {
-      tallest = thisHeight;
+    var imgHeight = $(this).find("img").outerHeight();
+    if(imgHeight > tallest) {
+      tallest = imgHeight;
     }
   });
 
   // Set height of all items in group to tallest item.
   if (tallest > 0) {
     group.each(function () {
-      $(this).outerHeight(tallest);
+      $(this).outerHeight(tallest + 5);
     });
   }
 
@@ -215,6 +215,9 @@ function startGraphUpdateLoop() {
             $("#lastUpdated").text(new Date(lastUpdated));
           }
         }
+
+      setGraphsToEqualHeight();
+
       }
     });
     // Scan each second for updated images.
