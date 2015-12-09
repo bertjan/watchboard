@@ -46,18 +46,21 @@ function getHashParam() {
 
 function setEqualHeight(group) {
   // Determine tallest item in group.
-  var tallest = 0;
+  var tallestImage = 0;
   group.each(function() {
     var imgHeight = $(this).find("img").outerHeight();
-    if(imgHeight > tallest) {
-      tallest = imgHeight;
+    if(imgHeight > tallestImage) {
+      tallestImage = imgHeight;
     }
   });
 
   // Set height of all items in group to tallest item.
-  if (tallest > 0) {
+  if (tallestImage > 0) {
     group.each(function () {
-      $(this).outerHeight(tallest + 5);
+      var targetHeight = tallestImage + 10;
+      if ($(this).outerHeight() != targetHeight) {
+        $(this).outerHeight(targetHeight);
+      }
     });
   }
 
