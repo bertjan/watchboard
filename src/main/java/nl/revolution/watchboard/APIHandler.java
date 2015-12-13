@@ -185,6 +185,7 @@ public class APIHandler extends AbstractHandler {
         Config.getInstance().checkForConfigUpdate();
         JSONObject jsonResponse = new JSONObject();
         jsonResponse.put("config", Config.getInstance().getDashboardsConfig());
+        jsonResponse.put("persistenceType", Config.getInstance().getString(Config.DASHBOARD_CONFIG_PERSISTENCE_TYPE));
 
         try {
             OutputStream out = response.getOutputStream();
