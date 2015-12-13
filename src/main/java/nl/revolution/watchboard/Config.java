@@ -46,7 +46,7 @@ public class Config {
     public static final String AWS_REGION = "aws.region";
     public static final String AWS_ACCESS_KEY_ID = "aws.accessKeyId";
     public static final String AWS_SECRET_KEY_ID = "aws.secretKeyId";
-    public static final String AWS_DYNAMODB_TABLE_TABLE = "aws.dynamoDB.tableName";
+    public static final String AWS_DYNAMODB_TABLE_NAME = "aws.dynamoDB.tableName";
     public static final String DASHBOARD_CONFIG_PERSISTENCE_TYPE = "dashboard.config.persistence.type";
 
     private enum DashboardConfigPersistenceType {
@@ -65,13 +65,13 @@ public class Config {
     public static final String PASSWORD = "password";
 
     private static Config instance;
-    private JSONObject config;
+    private JSONObject globalConfig;
     private JSONObject dashboardsConfig;
     private List<Dashboard> dashboards;
     private List<Plugin> plugins;
     private DashboardConfigPersistenceType dashboardConfigPersistenceType;
     private DashboardConfig dashboardConfigStore;
-
+    private DiskConfigStore diskConfigStore;
     private String globalConfigFileLastModifiedOnDisk;
     private String dashboardConfigLastModified;
 
@@ -91,6 +91,7 @@ public class Config {
     }
 
     public Config() throws IOException, ParseException {
+        diskConfigStore = new DiskConfigStore();
         intializeConfig();
     }
 
@@ -101,7 +102,7 @@ public class Config {
         validateDashboardsConfig();
         parsePlugins();
         parseDashboards();
-        globalConfigFileLastModifiedOnDisk = DiskConfigStore.getInstance().getLastUpdated();
+        globalConfigFileLastModifiedOnDisk = diskConfigStore.getLastUpdated();
         dashboardConfigLastModified = dashboardConfigStore.getLastUpdated();
 
         LOG.info("Config initialized. Configured {} dashboards with a total of {} graphs.",
@@ -109,8 +110,8 @@ public class Config {
     }
 
     public void checkForConfigUpdate() {
-        LOG.info("Checking for updated config file on disk.");
-        String lastModifiedOnDisk = DiskConfigStore.getInstance().getLastUpdated();
+        LOG.info("Checking for updated global config file on disk.");
+        String lastModifiedOnDisk = diskConfigStore.getLastUpdated();
         if (!lastModifiedOnDisk.equals(globalConfigFileLastModifiedOnDisk)) {
             LOG.info("Newer config file exists on disk, reloading.");
             try {
@@ -123,7 +124,8 @@ public class Config {
 
         // In case of DynamoDB config storage, also check for updates on database level.
         if (dashboardConfigPersistenceType == DashboardConfigPersistenceType.DYNAMODB) {
-            String configLastUpdatedInDB = DynamoDBConfigStore.getInstance().getLastUpdated();
+            LOG.info("Checking for updated config in DynamoDB.");
+            String configLastUpdatedInDB = dashboardConfigStore.getLastUpdated();
             if (!configLastUpdatedInDB.equals(dashboardConfigLastModified)) {
                 LOG.info("Newer config in DynamoDB than in memory, reloading.");
                 try {
@@ -138,12 +140,12 @@ public class Config {
 
     private void readGlobalConfig() throws IOException, ParseException {
         // Read base config file from disk.
-        String configStr = DiskConfigStore.getInstance().readGlobalConfigFromDisk();
-        config = (JSONObject) new JSONParser().parse(new StringReader(configStr));
+        String configStr = diskConfigStore.readGlobalConfigFromDisk();
+        globalConfig = (JSONObject) new JSONParser().parse(new StringReader(configStr));
 
         // In case of disk dashboard config storage, the dashboard config is in the same config file,
         // but it's stored in a different object. Remove it from global config when present.
-        config.remove(DASHBOARDS);
+        globalConfig.remove(DASHBOARDS);
     }
 
     private void readDashboardsConfig() throws IOException, ParseException {
@@ -151,11 +153,13 @@ public class Config {
         if ("dynamodb".equals(persistenceType.toLowerCase())) {
             LOG.info("Using DynamoDB as persistence store for dashboard config.");
             dashboardConfigPersistenceType = DashboardConfigPersistenceType.DYNAMODB;
-            dashboardConfigStore = DynamoDBConfigStore.getInstance();
+            dashboardConfigStore = new DynamoDBConfigStore(globalConfig);
         } else {
             LOG.info("Using disk as persistence store for dashboard config.");
             dashboardConfigPersistenceType = DashboardConfigPersistenceType.DISK;
-            dashboardConfigStore = DiskConfigStore.getInstance();
+
+            // Re-use existing disk config store (needed for global config).
+            dashboardConfigStore = diskConfigStore;
         }
 
         String configStr = dashboardConfigStore.readConfig();
@@ -166,7 +170,7 @@ public class Config {
     private void validateGlobalConfig() {
         // Check global config.
         REQUIRED_CONFIG_KEYS_GLOBAL.stream().forEach(requiredKey -> {
-            if (!config.containsKey(requiredKey)) {
+            if (!globalConfig.containsKey(requiredKey)) {
                 throw new RuntimeException("Required config key '" + requiredKey + "' is missing.");
             }
         });
@@ -258,7 +262,7 @@ public class Config {
 
     private void parsePlugins() {
         plugins = new ArrayList<>();
-        JSONArray pluginArr = (JSONArray)config.get(PLUGINS);
+        JSONArray pluginArr = (JSONArray)globalConfig.get(PLUGINS);
         pluginArr.forEach(pluginObj -> {
             JSONObject pluginJo = (JSONObject)pluginObj;
             Plugin plugin = new Plugin();
@@ -282,15 +286,11 @@ public class Config {
     }
 
     public String getString(String key) {
-        return readString(config, key);
-    }
-
-    public Object getObject(String key) {
-        return config.get(key);
+        return readString(globalConfig, key);
     }
 
     public int getInt(String key) {
-        return readInt(config, key);
+        return readInt(globalConfig, key);
     }
 
     private String readString(JSONObject jsonObject, String key) {
@@ -334,25 +334,17 @@ public class Config {
         return contextRoot + "/";
     }
 
-    public String getAWSAccessKeyId() {
-        return getString(Config.AWS_ACCESS_KEY_ID);
-    }
-
-    public String getAWSSecretKeyId() {
-        return getString(Config.AWS_SECRET_KEY_ID);
-    }
-
-    public String getAWSRegion() {
-        return getString(Config.AWS_REGION);
-    }
-
-    public String getAWSDynamoDBTableName() {
-        return getString(Config.AWS_DYNAMODB_TABLE_TABLE);
-    }
-
     public String getTSLastUpdate() {
         // Combination of global last modified and dashboards last modified.
         return globalConfigFileLastModifiedOnDisk + "-" + dashboardConfigLastModified;
+    }
+
+    public JSONObject getGlobalConfig() {
+        return globalConfig;
+    }
+
+    public JSONObject getDashboardsConfig() {
+        return dashboardsConfig;
     }
 
 }

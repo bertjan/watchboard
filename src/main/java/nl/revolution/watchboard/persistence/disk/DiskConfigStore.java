@@ -12,18 +12,6 @@ import java.io.IOException;
 public class DiskConfigStore implements DashboardConfig {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiskConfigStore.class);
-    private static DiskConfigStore instance;
-
-    public static DiskConfigStore getInstance() {
-        if (instance == null) {
-            synchronized(DiskConfigStore.class) {
-                if (instance == null) {
-                    instance = new DiskConfigStore();
-                }
-            }
-        }
-        return instance;
-    }
 
     @Override
     public String readConfig() throws IOException {

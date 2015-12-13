@@ -12,6 +12,7 @@ import com.amazonaws.services.dynamodbv2.document.PrimaryKey;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import nl.revolution.watchboard.Config;
 import nl.revolution.watchboard.persistence.DashboardConfig;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,27 +26,15 @@ public class DynamoDBConfigStore implements DashboardConfig {
     public static final String ID_KEY = "id";
     public static final String UPDATED_AT_KEY = "updatedAt";
     private Table table;
-    private static DynamoDBConfigStore instance;
 
-    public static DynamoDBConfigStore getInstance() {
-        if (instance == null) {
-            synchronized(DynamoDBConfigStore.class) {
-                if (instance == null) {
-                    instance = new DynamoDBConfigStore();
-                }
-            }
-        }
-        return instance;
-    }
-
-    private DynamoDBConfigStore() {
-        String accessKeyId = Config.getInstance().getAWSAccessKeyId();
-        String secretKeyId = Config.getInstance().getAWSSecretKeyId();
+    public DynamoDBConfigStore(JSONObject config) {
+        String accessKeyId = (String)config.get(Config.AWS_ACCESS_KEY_ID);
+        String secretKeyId = (String)config.get(Config.AWS_SECRET_KEY_ID);
         AWSCredentials awsCredentials = new BasicAWSCredentials(accessKeyId, secretKeyId);
         AmazonDynamoDBClient dynamoDBClient = new AmazonDynamoDBClient(new StaticCredentialsProvider(awsCredentials));
-        dynamoDBClient.setRegion(Region.getRegion(Regions.fromName(Config.getInstance().getAWSRegion())));
+        dynamoDBClient.setRegion(Region.getRegion(Regions.fromName((String)config.get(Config.AWS_REGION))));
         DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
-        table = dynamoDB.getTable(Config.getInstance().getAWSDynamoDBTableName());
+        table = dynamoDB.getTable((String)config.get(Config.AWS_DYNAMODB_TABLE_NAME));
     }
 
     private Item readConfigAsItem() {
