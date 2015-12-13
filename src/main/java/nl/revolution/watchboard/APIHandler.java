@@ -57,6 +57,11 @@ public class APIHandler extends AbstractHandler {
             return;
         }
 
+        if (requestURI.startsWith(contextRoot + "config")) {
+            createConfigResponse(baseRequest, response);
+            return;
+        }
+
         if (requestURI.startsWith(contextRoot + "healthcheck")) {
             createHealthCheckResponse(baseRequest, response);
             return;
@@ -167,6 +172,28 @@ public class APIHandler extends AbstractHandler {
         out.flush();
         out.close();
         LOG.info("Served " + filename + ".");
+    }
+
+
+
+    private void createConfigResponse(Request baseRequest, HttpServletResponse response) throws IOException, ServletException {
+        response.setContentType(CONTENT_TYPE_JSON_UTF8);
+        response.setStatus(HttpServletResponse.SC_OK);
+        baseRequest.setHandled(true);
+
+        // Trigger check for config update to make sure that the config we fetch is up to date.
+        Config.getInstance().checkForConfigUpdate();
+        JSONObject jsonResponse = new JSONObject();
+        jsonResponse.put("config", Config.getInstance().getDashboardsConfig());
+
+        try {
+            OutputStream out = response.getOutputStream();
+            out.write(jsonResponse.toJSONString().getBytes(CHARSET_UTF_8));
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            LOG.error("Error while creating config response: ", e);
+        }
     }
 
 

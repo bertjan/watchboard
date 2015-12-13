@@ -27,15 +27,25 @@ public class WebServer {
         indexContextHandler.setHandler(indexResource);
         webHandlers.addHandler(indexContextHandler);
 
+        // Resource handler for config screen (config.html).
+        ResourceHandler configResource = new ResourceHandler();
+        configResource.setDirectoriesListed(false);
+        configResource.setResourceBase(webDir);
+        configResource.setWelcomeFiles(new String[]{"config.html"});
+        ContextHandler configContextHandler;
+        configContextHandler = new ContextHandler(Config.getInstance().getContextRoot() + "config");
+        configContextHandler.setHandler(configResource);
+        webHandlers.addHandler(configContextHandler);
+
         // Dashboard-specific context/resource handler for second request (dashboard.html).
         Config.getInstance().getDashboardIds().stream().forEach(dashboardId -> {
-            ResourceHandler dashboardesource = new ResourceHandler();
-            dashboardesource.setDirectoriesListed(false);
-            dashboardesource.setResourceBase(webDir);
-            dashboardesource.setWelcomeFiles(new String[]{"dashboard.html"});
+            ResourceHandler dashboardResource = new ResourceHandler();
+            dashboardResource.setDirectoriesListed(false);
+            dashboardResource.setResourceBase(webDir);
+            dashboardResource.setWelcomeFiles(new String[]{"dashboard.html"});
             ContextHandler dashboardContextHandler;
             dashboardContextHandler = new ContextHandler(Config.getInstance().getContextRoot() + dashboardId);
-            dashboardContextHandler.setHandler(dashboardesource);
+            dashboardContextHandler.setHandler(dashboardResource);
             webHandlers.addHandler(dashboardContextHandler);
         });
 

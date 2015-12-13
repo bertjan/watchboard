@@ -1,0 +1,32 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <link rel="stylesheet" href="watchboard.css" type="text/css">
+    <script type="text/javascript" src="watchboard.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        // Initial rendering.
+        fetchDashboardConfig();
+    });
+</script>
+
+<div id="topBar">
+     <span id="logo">
+    <a href="https://github.com/bertjan/watchboard">Watchboard</a>
+     </span>
+    </a>
+    <span id="titleContainer">
+        <span id="title">Dashboards</span>
+    </span>
+</div>
+
+<div>
+<h1>Dashboard configuration</h1>
+<div id="config"></div>
+</div>
+
+</body>
+</html>

@@ -163,7 +163,10 @@ public class Config {
         }
 
         String configStr = dashboardConfigStore.readConfig();
-        dashboardsConfig = (JSONObject) new JSONParser().parse(new StringReader(configStr));
+
+        JSONObject fullConfig = (JSONObject) new JSONParser().parse(new StringReader(configStr));
+        dashboardsConfig = new JSONObject();
+        dashboardsConfig.put("dashboards", fullConfig.get("dashboards"));
     }
 
 

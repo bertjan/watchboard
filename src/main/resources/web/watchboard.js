@@ -232,3 +232,15 @@ function startGraphUpdateLoop() {
   });
 
 }
+
+function fetchDashboardConfig() {
+  $.ajax({
+    url: '../api/v1/config',
+    success:function(data) {
+      $("#config").text(JSON.stringify(data.config));
+    },
+    error:function(jqXHR, textStatus,errorThrown) {
+      $("#config").text("Fetching config failed.");
+    }
+  });
+}
