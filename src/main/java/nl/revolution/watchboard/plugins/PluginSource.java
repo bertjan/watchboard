@@ -1,5 +1,7 @@
 package nl.revolution.watchboard.plugins;
 
+import nl.revolution.watchboard.Config;
+import nl.revolution.watchboard.data.Graph;
 import nl.revolution.watchboard.plugins.cloudwatch.CloudWatchPlugin;
 import nl.revolution.watchboard.plugins.performr.PerformrPlugin;
 import org.slf4j.Logger;
@@ -17,8 +19,15 @@ public class PluginSource {
     public void start() {
         workers = new ArrayList<>();
 
-        workers.add(new PluginUpdateThread(new CloudWatchPlugin()));
-        workers.add(new PluginUpdateThread(new PerformrPlugin()));
+        if (Config.getInstance().getPlugin(Graph.Type.CLOUDWATCH) != null) {
+            LOG.info("CloudWatch plugin configured, starting update thread.");
+            workers.add(new PluginUpdateThread(new CloudWatchPlugin()));
+        }
+
+        if (Config.getInstance().getPlugin(Graph.Type.PERFORMR) != null) {
+            LOG.info("Performr plugin configured, starting update thread.");
+            workers.add(new PluginUpdateThread(new PerformrPlugin()));
+        }
 
         workers.stream().forEach(Thread::start);
     }
