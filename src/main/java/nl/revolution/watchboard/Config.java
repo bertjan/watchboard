@@ -3,7 +3,9 @@ package nl.revolution.watchboard;
 import nl.revolution.watchboard.data.Dashboard;
 import nl.revolution.watchboard.data.Graph;
 import nl.revolution.watchboard.data.Plugin;
-import org.apache.commons.io.FileUtils;
+import nl.revolution.watchboard.persistence.DashboardConfig;
+import nl.revolution.watchboard.persistence.disk.DiskConfigStore;
+import nl.revolution.watchboard.persistence.dynamodb.DynamoDBConfigStore;
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -12,7 +14,6 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -42,9 +43,19 @@ public class Config {
     public static final String BACKEND_UPDATE_INTERVAL_SECONDS = "backendUpdateIntervalSeconds";
     public static final String MAX_SESSION_DURATION_MINUTES = "maxSessionDurationMinutes";
     public static final String DEFAULT_NUMBER_OF_COLUMNS = "defaultNumberOfColumns";
+    public static final String AWS_REGION = "aws.region";
+    public static final String AWS_ACCESS_KEY_ID = "aws.accessKeyId";
+    public static final String AWS_SECRET_KEY_ID = "aws.secretKeyId";
+    public static final String AWS_DYNAMODB_TABLE_TABLE = "aws.dynamoDB.tableName";
+    public static final String DASHBOARD_CONFIG_PERSISTENCE_TYPE = "dashboard.config.persistence.type";
+
+    private enum DashboardConfigPersistenceType {
+        DISK,
+        DYNAMODB
+    }
 
     private static final List<String> REQUIRED_CONFIG_KEYS_GLOBAL = Arrays.asList(HTTP_PORT, WEB_CONTEXTROOT,
-            TEMP_PATH, MAX_SESSION_DURATION_MINUTES, DASHBOARDS, PLUGINS);
+            TEMP_PATH, MAX_SESSION_DURATION_MINUTES, PLUGINS, DASHBOARD_CONFIG_PERSISTENCE_TYPE);
     private static final List<String> REQUIRED_CONFIG_KEYS_DASHBOARD = Arrays.asList(ID, TITLE, GRAPHS);
     private static final List<String> REQUIRED_CONFIG_KEYS_GRAPH = Arrays.asList(TYPE, ID, BROWSER_WIDTH, BROWSER_HEIGHT);
 
@@ -55,10 +66,14 @@ public class Config {
 
     private static Config instance;
     private JSONObject config;
+    private JSONObject dashboardsConfig;
     private List<Dashboard> dashboards;
     private List<Plugin> plugins;
+    private DashboardConfigPersistenceType dashboardConfigPersistenceType;
+    private DashboardConfig dashboardConfigStore;
 
-    private long configFileLastModified;
+    private String globalConfigFileLastModifiedOnDisk;
+    private String dashboardConfigLastModified;
 
     public static Config getInstance() {
         if (instance == null) {
@@ -80,11 +95,14 @@ public class Config {
     }
 
     private void intializeConfig() throws IOException, ParseException {
-        readConfigFromDisk();
-        checkConfig();
+        readGlobalConfig();
+        validateGlobalConfig();
+        readDashboardsConfig();
+        validateDashboardsConfig();
         parsePlugins();
         parseDashboards();
-        configFileLastModified = getConfigFile().lastModified();
+        globalConfigFileLastModifiedOnDisk = DiskConfigStore.getInstance().getLastUpdated();
+        dashboardConfigLastModified = dashboardConfigStore.getLastUpdated();
 
         LOG.info("Config initialized. Configured {} dashboards with a total of {} graphs.",
                 dashboards.size(), dashboards.stream().map(Dashboard::getGraphs).flatMap(Collection::stream).count());
@@ -92,41 +110,71 @@ public class Config {
 
     public void checkForConfigUpdate() {
         LOG.info("Checking for updated config file on disk.");
-        File configFile = getConfigFile();
-        long lastModifiedOnDisk = configFile.lastModified();
-
-        if (lastModifiedOnDisk != configFileLastModified) {
+        String lastModifiedOnDisk = DiskConfigStore.getInstance().getLastUpdated();
+        if (!lastModifiedOnDisk.equals(globalConfigFileLastModifiedOnDisk)) {
             LOG.info("Newer config file exists on disk, reloading.");
             try {
                 intializeConfig();
+                return;
             } catch (IOException | ParseException ex) {
                 LOG.error("Error while reloading config file from disk: ", ex);
             }
         }
+
+        // In case of DynamoDB config storage, also check for updates on database level.
+        if (dashboardConfigPersistenceType == DashboardConfigPersistenceType.DYNAMODB) {
+            String configLastUpdatedInDB = DynamoDBConfigStore.getInstance().getLastUpdated();
+            if (!configLastUpdatedInDB.equals(dashboardConfigLastModified)) {
+                LOG.info("Newer config in DynamoDB than in memory, reloading.");
+                try {
+                    intializeConfig();
+                    return;
+                } catch (IOException | ParseException ex) {
+                    LOG.error("Error while reloading config from DynamoDB: ", ex);
+                }
+            }
+        }
     }
 
-    private void readConfigFromDisk() throws IOException, ParseException {
-        File configFile = getConfigFile();
-        LOG.info("Using config file: {}", configFile.getAbsolutePath());
-        String configStr = FileUtils.readFileToString(configFile);
+    private void readGlobalConfig() throws IOException, ParseException {
+        // Read base config file from disk.
+        String configStr = DiskConfigStore.getInstance().readGlobalConfigFromDisk();
         config = (JSONObject) new JSONParser().parse(new StringReader(configStr));
+
+        // In case of disk dashboard config storage, the dashboard config is in the same config file,
+        // but it's stored in a different object. Remove it from global config when present.
+        config.remove(DASHBOARDS);
     }
 
-    private File getConfigFile() {
-        String configFilePath = getCurrentPath() + "/config.json";
-        return new File(configFilePath);
+    private void readDashboardsConfig() throws IOException, ParseException {
+        String persistenceType = getString(DASHBOARD_CONFIG_PERSISTENCE_TYPE);
+        if ("dynamodb".equals(persistenceType.toLowerCase())) {
+            LOG.info("Using DynamoDB as persistence store for dashboard config.");
+            dashboardConfigPersistenceType = DashboardConfigPersistenceType.DYNAMODB;
+            dashboardConfigStore = DynamoDBConfigStore.getInstance();
+        } else {
+            LOG.info("Using disk as persistence store for dashboard config.");
+            dashboardConfigPersistenceType = DashboardConfigPersistenceType.DISK;
+            dashboardConfigStore = DiskConfigStore.getInstance();
+        }
+
+        String configStr = dashboardConfigStore.readConfig();
+        dashboardsConfig = (JSONObject) new JSONParser().parse(new StringReader(configStr));
     }
 
-    private void checkConfig() {
+
+    private void validateGlobalConfig() {
         // Check global config.
         REQUIRED_CONFIG_KEYS_GLOBAL.stream().forEach(requiredKey -> {
             if (!config.containsKey(requiredKey)) {
                 throw new RuntimeException("Required config key '" + requiredKey + "' is missing.");
             }
         });
+    }
 
+    private void validateDashboardsConfig() {
         // Check dashboards config.
-        JSONArray dashboards = (JSONArray)config.get("dashboards");
+        JSONArray dashboards = (JSONArray)dashboardsConfig.get("dashboards");
         dashboards.stream().forEach(dashboard -> {
             REQUIRED_CONFIG_KEYS_DASHBOARD.stream().forEach(requiredKey -> {
                 if (!((JSONObject) dashboard).containsKey(requiredKey)) {
@@ -151,12 +199,13 @@ public class Config {
             });
         });
 
-        // TODO: check plugin config
+        // TODO: validate plugin config
     }
+
 
     private void parseDashboards() {
         dashboards = new ArrayList<>();
-        JSONArray dashArr = (JSONArray)config.get(DASHBOARDS);
+        JSONArray dashArr = (JSONArray)dashboardsConfig.get(DASHBOARDS);
         for (int dashIndex = 0; dashIndex < dashArr.size(); dashIndex++) {
             JSONObject dashObj = (JSONObject) dashArr.get(dashIndex);
             Dashboard dashboard = new Dashboard();
@@ -232,13 +281,12 @@ public class Config {
         return null;
     }
 
-    private String getCurrentPath() {
-        String path = this.getClass().getProtectionDomain().getCodeSource().getLocation().toString().replaceAll("file:", "");
-        return path.substring(0, path.lastIndexOf("/"));
-    }
-
     public String getString(String key) {
         return readString(config, key);
+    }
+
+    public Object getObject(String key) {
+        return config.get(key);
     }
 
     public int getInt(String key) {
@@ -286,8 +334,25 @@ public class Config {
         return contextRoot + "/";
     }
 
-    public long getTSLastUpdate() {
-        return configFileLastModified;
+    public String getAWSAccessKeyId() {
+        return getString(Config.AWS_ACCESS_KEY_ID);
+    }
+
+    public String getAWSSecretKeyId() {
+        return getString(Config.AWS_SECRET_KEY_ID);
+    }
+
+    public String getAWSRegion() {
+        return getString(Config.AWS_REGION);
+    }
+
+    public String getAWSDynamoDBTableName() {
+        return getString(Config.AWS_DYNAMODB_TABLE_TABLE);
+    }
+
+    public String getTSLastUpdate() {
+        // Combination of global last modified and dashboards last modified.
+        return globalConfigFileLastModifiedOnDisk + "-" + dashboardConfigLastModified;
     }
 
 }

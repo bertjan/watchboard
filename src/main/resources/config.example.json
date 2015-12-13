@@ -19,6 +19,11 @@
     }
   ],
   "maxSessionDurationMinutes" : 30,
+  "aws.region" : "eu-west-1",
+  "aws.accessKeyId" : "johndoe",
+  "aws.secretKeyId" : "secret",
+  "aws.dynamoDB.tableName" : "watchboard",
+  "dashboard.config.persistence.type" : "disk",
   "dashboards" : [
     {
       "id" : "myfirstdashboard",
