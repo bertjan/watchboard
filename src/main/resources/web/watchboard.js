@@ -241,7 +241,7 @@ function fetchDashboardConfig() {
   $.ajax({
     url: '../api/v1/config',
     success:function(data) {
-      $("#config").text(JSON.stringify(data.config, null, 2));
+      $("#config").text(stringifyDashboardConfig(data.config));
       $("#message").text(data.message);
     },
     error:function(jqXHR, textStatus,errorThrown) {
@@ -267,11 +267,26 @@ function saveDashboardConfig() {
     contentType: "application/json; charset=utf-8",
     dataType: "json",
     success:function(data) {
-      $("#config").text(JSON.stringify(data.config, null, 2));
+      $("#config").text(stringifyDashboardConfig(data.config));
       $("#message").text(data.message);
     },
     error:function(jqXHR, textStatus,errorThrown) {
       $("#message").text("Saving config failed: " + errorThrown);
     }
   });
+}
+
+function stringifyDashboardConfig(data) {
+  newdata = {};
+  newdata.dashboards = [];
+  for (i = 0; i < data.dashboards.length; i++) {
+    dashboard = {
+      id: data.dashboards[i].id,
+      title: data.dashboards[i].title,
+      graphs: data.dashboards[i].graphs
+    };
+    newdata.dashboards.push(dashboard);
+  }
+
+  return JSON.stringify(newdata, null, 2);
 }
