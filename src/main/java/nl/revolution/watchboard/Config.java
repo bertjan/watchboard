@@ -271,7 +271,16 @@ public class Config {
     }
 
     public JSONObject getDashboardsConfig() {
+        // Trigger check for config update to make sure that the config we fetch is up to date.
+        Config.getInstance().checkForConfigUpdate();
         return dashboardsConfig;
+    }
+
+    public void updateDashboardsConfig(String dashboardsConfig) {
+        dashboardConfigStore.updateConfig(dashboardsConfig);
+
+        // Trigger check for config update to make sure that the config in memory is up to date.
+        Config.getInstance().checkForConfigUpdate();
     }
 
 }

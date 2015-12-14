@@ -89,7 +89,7 @@ function renderDashboardList() {
         }
 
         $("#dashboards").html($("#dashboards").html() +
-          "<li><a href=\""+ dashboardLink + "\">" + dashboard.title + "</a></li>");
+          "<li><a href=\""+ dashboardLink + "\">" + escapeMarkup(dashboard.title) + "</a></li>");
       }
       $("#dashboards").html($("#dashboards").html() + "</ul>")
     },
@@ -99,6 +99,10 @@ function renderDashboardList() {
   });
 }
 
+
+function escapeMarkup(markup) {
+  return $('<div/>').text(dashboard.title).html();
+}
 
 function performInitialGraphsRender() {
   $.ajax({
@@ -238,9 +242,36 @@ function fetchDashboardConfig() {
     url: '../api/v1/config',
     success:function(data) {
       $("#config").text(JSON.stringify(data.config, null, 2));
+      $("#message").text(data.message);
     },
     error:function(jqXHR, textStatus,errorThrown) {
       $("#config").text("Fetching config failed.");
+    }
+  });
+}
+
+function saveDashboardConfig() {
+  $("#message").text("Saving config...");
+  data = {};
+  try {
+    data.config = JSON.parse($("#config").val());
+  } catch (e) {
+    $("#message").text(e);
+    return;
+  }
+
+  $.ajax({
+    url: '../api/v1/config',
+    method: 'POST',
+    data: JSON.stringify(data),
+    contentType: "application/json; charset=utf-8",
+    dataType: "json",
+    success:function(data) {
+      $("#config").text(JSON.stringify(data.config, null, 2));
+      $("#message").text(data.message);
+    },
+    error:function(jqXHR, textStatus,errorThrown) {
+      $("#message").text("Saving config failed: " + errorThrown);
     }
   });
 }

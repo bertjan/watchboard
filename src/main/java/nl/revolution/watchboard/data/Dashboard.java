@@ -62,6 +62,11 @@ public class Dashboard {
 
         // Check dashboards config.
         JSONArray dashboards = (JSONArray)dashboardsConfig.get("dashboards");
+        if (dashboards == null) {
+            validationResults.append("Dashboard config is missing.");
+            return validationResults.toString();
+        }
+
         dashboards.stream().forEach(dashboard -> {
             REQUIRED_CONFIG_KEYS_DASHBOARD.stream().forEach(requiredKey -> {
                 if (!((JSONObject) dashboard).containsKey(requiredKey)) {
@@ -72,18 +77,24 @@ public class Dashboard {
 
             // Check graphs config.
             JSONArray graphs = (JSONArray) ((JSONObject) dashboard).get("graphs");
-            graphs.stream().forEach(graph -> {
-                REQUIRED_CONFIG_KEYS_GRAPH.stream().forEach(requiredGraphKey -> {
-                    if (!((JSONObject) graph).containsKey(requiredGraphKey)) {
-                        // Graph type 'disk' has almost no requirements, skip validation.
-                        if (!"disk".equals(((JSONObject) graph).get("type"))) {
-                            validationResults.append("Required config key '" + requiredGraphKey +
-                                    "' is missing for dashboard '" + ((JSONObject) dashboard).get("id") +
-                                    "', graph '" + ((JSONObject) graph).get("id") + "'.\n");
+            if (graphs == null) {
+                validationResults.append("Dashboard '" + ((JSONObject) dashboard).get("id") + "' is missing graphs.");
+            }
+
+            if (graphs != null) {
+                graphs.stream().forEach(graph -> {
+                    REQUIRED_CONFIG_KEYS_GRAPH.stream().forEach(requiredGraphKey -> {
+                        if (!((JSONObject) graph).containsKey(requiredGraphKey)) {
+                            // Graph type 'disk' has almost no requirements, skip validation.
+                            if (!"disk".equals(((JSONObject) graph).get("type"))) {
+                                validationResults.append("Required config key '" + requiredGraphKey +
+                                        "' is missing for dashboard '" + ((JSONObject) dashboard).get("id") +
+                                        "', graph '" + ((JSONObject) graph).get("id") + "'.\n");
+                            }
                         }
-                    }
+                    });
                 });
-            });
+            }
 
         });
 

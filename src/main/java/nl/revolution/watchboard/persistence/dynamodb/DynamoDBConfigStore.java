@@ -11,8 +11,12 @@ import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.PrimaryKey;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import nl.revolution.watchboard.Config;
+import nl.revolution.watchboard.data.Dashboard;
 import nl.revolution.watchboard.persistence.DashboardConfig;
+import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +53,19 @@ public class DynamoDBConfigStore implements DashboardConfig {
 
     @Override
     public void updateConfig(String dashboardConfig) {
+        JSONObject configJo;
+        try {
+            configJo = (JSONObject)new JSONParser().parse(dashboardConfig);
+        } catch (ParseException e) {
+            LOG.error("Error parsing config: ", e);
+            throw new RuntimeException("Error parsing config");
+        }
+        String validationResult = Dashboard.validateConfig(configJo);
+        if (StringUtils.isNotEmpty(validationResult)) {
+            LOG.error("Error while validating config:\n" + validationResult);
+            throw new RuntimeException("Error validating config: " + validationResult);
+        }
+
         // TODO: locking on UPDATED_AT_KEY
 
         Item oldConfig = table.getItem(new PrimaryKey().addComponent(ID_KEY, DASHBOARD_CONFIG_DOCUMENT_KEY));
@@ -60,6 +77,7 @@ public class DynamoDBConfigStore implements DashboardConfig {
 
         Item newConfig = Item.fromJSON(dashboardConfig);
         newConfig.with(UPDATED_AT_KEY, currentTime);
+        newConfig.withKeyComponent(ID_KEY, DASHBOARD_CONFIG_DOCUMENT_KEY);
         writeConfig(newConfig);
     }
 

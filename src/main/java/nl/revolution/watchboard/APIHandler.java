@@ -8,6 +8,8 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Optional;
@@ -58,7 +61,11 @@ public class APIHandler extends AbstractHandler {
         }
 
         if (requestURI.startsWith(contextRoot + "config")) {
-            createConfigResponse(baseRequest, response);
+            if ("POST".equals(request.getMethod())) {
+                handlePOSTConfigRequest(baseRequest, request, response);
+            } else {
+                createGETConfigResponse(baseRequest, response, null);
+            }
             return;
         }
 
@@ -176,16 +183,17 @@ public class APIHandler extends AbstractHandler {
 
 
 
-    private void createConfigResponse(Request baseRequest, HttpServletResponse response) throws IOException, ServletException {
+    private void createGETConfigResponse(Request baseRequest, HttpServletResponse response, String message) throws IOException, ServletException {
         response.setContentType(CONTENT_TYPE_JSON_UTF8);
         response.setStatus(HttpServletResponse.SC_OK);
         baseRequest.setHandled(true);
 
-        // Trigger check for config update to make sure that the config we fetch is up to date.
-        Config.getInstance().checkForConfigUpdate();
         JSONObject jsonResponse = new JSONObject();
         jsonResponse.put("config", Config.getInstance().getDashboardsConfig());
         jsonResponse.put("persistenceType", Config.getInstance().getString(Config.DASHBOARD_CONFIG_PERSISTENCE_TYPE));
+        if (message != null) {
+            jsonResponse.put("message", message);
+        }
 
         try {
             OutputStream out = response.getOutputStream();
@@ -197,6 +205,21 @@ public class APIHandler extends AbstractHandler {
         }
     }
 
+    private void handlePOSTConfigRequest(Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        String postData = readFully(request.getReader());
+        JSONObject postDataJo;
+        try {
+            postDataJo = (JSONObject) new JSONParser().parse(postData);
+        } catch (ParseException e) {
+            LOG.error("Error while parsing POST data");
+            createGETConfigResponse(baseRequest, response, "Error while saving dashboard configuration.");
+            return;
+        }
+        String dashboardConfig = ((JSONObject)postDataJo.get("config")).toJSONString();
+        Config.getInstance().updateDashboardsConfig(dashboardConfig);
+
+        createGETConfigResponse(baseRequest, response, "Dashboard configuration saved.");
+    }
 
     private void createHealthCheckResponse(Request baseRequest, HttpServletResponse response) {
         response.setContentType(CONTENT_TYPE_JSON_UTF8);
@@ -223,6 +246,16 @@ public class APIHandler extends AbstractHandler {
             LOG.error("Error while determining remote user fingerprint: ", e);
             return null;
         }
+    }
+
+    private String readFully(Reader reader) throws IOException {
+        char[] arr = new char[8*1024]; // 8K at a time
+        StringBuffer buf = new StringBuffer();
+        int numChars;
+        while ((numChars = reader.read(arr, 0, arr.length)) > 0) {
+            buf.append(arr, 0, numChars);
+        }
+        return buf.toString();
     }
 
 }

@@ -7,27 +7,39 @@
 <body>
 
 <script type="text/javascript">
-    $(document).ready(function(){
+    $(document).ready(function() {
+        $("#save").click(function() {
+            saveDashboardConfig();
+        });
+
         // Initial rendering.
         fetchDashboardConfig();
     });
 </script>
 
 <div id="topBar">
-     <span id="logo">
-    <a href="https://github.com/bertjan/watchboard">Watchboard</a>
-     </span>
-    </a>
+    <span id="back">
+        <a href=".."><img src="back-icon.png" id="backIcon"></a>
+    </span>
+        <span id="logo">
+            <a href="https://github.com/bertjan/watchboard">
+                Watchboard
+            </a>
+        </span>
     <span id="titleContainer">
-        <span id="title">Dashboards</span>
+        <span id="title">Configuration</span>
     </span>
 </div>
 
+
 <div>
 <h1>Dashboard configuration</h1>
-    <textarea id="config" style="height: 80%; width: 90%">
+    <p id="message" style="height:15px"></p>
+    <textarea id="config" style="height: 60%; width: 100%">
+        Loading...
     </textarea>
-
+    <br/><br/>
+    <button type="button" id="save">Save</button>
 </div>
 
 </body>
