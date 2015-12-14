@@ -283,6 +283,7 @@ function stringifyDashboardConfig(data) {
     dashboard = {
       id: data.dashboards[i].id,
       title: data.dashboards[i].title,
+      defaultNumberOfColumns: data.dashboards[i].defaultNumberOfColumns,
       graphs: data.dashboards[i].graphs
     };
     newdata.dashboards.push(dashboard);
