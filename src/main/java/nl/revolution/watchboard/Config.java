@@ -20,29 +20,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Config {
 
     private static final Logger LOG = LoggerFactory.getLogger(Config.class);
 
-    public static final String ID = "id";
-    public static final String TITLE = "title";
     public static final String PLUGINS = "plugins";
-    public static final String DASHBOARDS = "dashboards";
-    public static final String GRAPHS = "graphs";
-    public static final String TYPE = "type";
-    public static final String URL = "url";
-    public static final String COMPONENTS = "components";
-    public static final String BROWSER_WIDTH = "browserWidth";
-    public static final String BROWSER_HEIGHT = "browserHeight";
     public static final String TEMP_PATH = "temp.path";
     public static final String WEB_CONTEXTROOT = "web.contextroot";
     public static final String HTTP_PORT = "httpPort";
+    public static final String TYPE = "type";
+    public static final String DASHBOARDS = "dashboards";
+    public static final String ID = "id";
+    public static final String TITLE = "title";
+    public static final String DEFAULT_NUMBER_OF_COLUMNS = "defaultNumberOfColumns";
     public static final String BACKEND_UPDATE_INTERVAL_SECONDS = "backendUpdateIntervalSeconds";
     public static final String MAX_SESSION_DURATION_MINUTES = "maxSessionDurationMinutes";
-    public static final String DEFAULT_NUMBER_OF_COLUMNS = "defaultNumberOfColumns";
     public static final String AWS_REGION = "aws.region";
     public static final String AWS_ACCESS_KEY_ID = "aws.accessKeyId";
     public static final String AWS_SECRET_KEY_ID = "aws.secretKeyId";
@@ -56,10 +50,7 @@ public class Config {
 
     private static final List<String> REQUIRED_CONFIG_KEYS_GLOBAL = Arrays.asList(HTTP_PORT, WEB_CONTEXTROOT,
             TEMP_PATH, MAX_SESSION_DURATION_MINUTES, PLUGINS, DASHBOARD_CONFIG_PERSISTENCE_TYPE);
-    private static final List<String> REQUIRED_CONFIG_KEYS_DASHBOARD = Arrays.asList(ID, TITLE, GRAPHS);
-    private static final List<String> REQUIRED_CONFIG_KEYS_GRAPH = Arrays.asList(TYPE, ID, BROWSER_WIDTH, BROWSER_HEIGHT);
 
-    private static final String EXTENSION_PNG = ".png";
     public static final String LOGIN_URL = "login.url";
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
@@ -180,87 +171,16 @@ public class Config {
     }
 
     private void validateDashboardsConfig() {
-        // Check dashboards config.
-        JSONArray dashboards = (JSONArray)dashboardsConfig.get("dashboards");
-        dashboards.stream().forEach(dashboard -> {
-            REQUIRED_CONFIG_KEYS_DASHBOARD.stream().forEach(requiredKey -> {
-                if (!((JSONObject) dashboard).containsKey(requiredKey)) {
-                    throw new RuntimeException("Required config key '" + requiredKey +
-                            "' is missing for dashboard '" + ((JSONObject) dashboard).get("id") + "'.");
-                }
+        String validationResults = Dashboard.validateConfig(dashboardsConfig);
 
-                // Check graphs config.
-                JSONArray graphs = (JSONArray) ((JSONObject) dashboard).get("graphs");
-                graphs.stream().forEach(graph -> {
-                    REQUIRED_CONFIG_KEYS_GRAPH.stream().forEach(requiredGraphKey -> {
-                        if (!((JSONObject) graph).containsKey(requiredGraphKey)) {
-                            // Graph type 'disk' has almost no requirements.
-                            if (!"disk".equals(((JSONObject) graph).get("type"))) {
-                                throw new RuntimeException("Required config key '" + requiredGraphKey +
-                                        "' is missing for dashboard '" + ((JSONObject) dashboard).get("id") +
-                                        "', graph '" + ((JSONObject) graph).get("id") + "'.");
-                            }
-                        }
-                    });
-                });
-            });
-        });
-
-        // TODO: validate plugin config
+        if (StringUtils.isNotEmpty(validationResults)) {
+            LOG.error("Validation of dashboards config failed: \n" + validationResults);
+            throw new RuntimeException("Validcation of dashboards config failed.");
+        }
     }
 
-
     private void parseDashboards() {
-        dashboards = new ArrayList<>();
-        JSONArray dashArr = (JSONArray)dashboardsConfig.get(DASHBOARDS);
-        for (int dashIndex = 0; dashIndex < dashArr.size(); dashIndex++) {
-            JSONObject dashObj = (JSONObject) dashArr.get(dashIndex);
-            Dashboard dashboard = new Dashboard();
-            dashboard.setId(readString(dashObj, ID));
-            dashboard.setTitle(readString(dashObj, TITLE));
-            dashboard.setDefaultNumberOfColumns(readInteger(dashObj, DEFAULT_NUMBER_OF_COLUMNS));
-
-            JSONArray graphsJa = (JSONArray)dashObj.get(GRAPHS);
-            for (int graphIndex = 0; graphIndex < graphsJa.size(); graphIndex++) {
-                JSONObject graphObj = (JSONObject) graphsJa.get(graphIndex);
-                Graph graph = new Graph();
-
-                String typeStr = readString(graphObj, TYPE);
-                Graph.Type graphType = Graph.Type.fromString(typeStr);
-                graph.setType(graphType);
-
-                String url = readString(graphObj, URL);
-                if (Graph.Type.PERFORMR.equals(graph.getType()) && StringUtils.isEmpty(url)) {
-                    url = getPlugin(Graph.Type.PERFORMR).getLoginUrl();
-                }
-                graph.setUrl(url);
-                graph.setId(readString(graphObj, ID));
-
-                graph.setBrowserWidth(readInt(graphObj, BROWSER_WIDTH));
-                graph.setBrowserHeight(readInt(graphObj, BROWSER_HEIGHT));
-                graph.setImagePath(getString(TEMP_PATH) + "/" + readString(graphObj, ID).toString() + EXTENSION_PNG);
-
-                Object componentsObj = graphObj.get(COMPONENTS);
-                if (componentsObj != null) {
-                    graph.setComponents((List) componentsObj);
-                }
-                dashboard.getGraphs().add(graph);
-            }
-            dashboards.add(dashboard);
-        }
-
-        // Postprocess step: try to find a matching URL for each graph of type 'disk'.
-        dashboards.forEach(dashboard -> dashboard.getGraphs().forEach(graphWithDiskSource -> {
-            Optional<Graph> graphWithMatchingId =
-                    dashboards.stream()
-                            .map(d -> d.getGraphs())
-                            .flatMap(g -> g.stream())
-                            .filter(graph -> graph.getId().equals(graphWithDiskSource.getId()))
-                            .findFirst();
-            if (graphWithMatchingId.isPresent()) {
-                graphWithDiskSource.setUrl(graphWithMatchingId.get().getUrl());
-            }
-        }));
+        dashboards = Dashboard.parseConfig(dashboardsConfig, plugins, getString(TEMP_PATH));
     }
 
     private void parsePlugins() {
@@ -279,13 +199,17 @@ public class Config {
         });
     }
 
-    public Plugin getPlugin(Graph.Type type) {
+    public static Plugin getPlugin(List<Plugin> plugins, Graph.Type type) {
         for (Plugin plugin : plugins) {
             if (type.equals(plugin.getType())) {
                 return plugin;
             }
         }
         return null;
+    }
+
+    public Plugin getPlugin(Graph.Type type) {
+        return getPlugin(plugins, type);
     }
 
     public String getString(String key) {
@@ -296,7 +220,7 @@ public class Config {
         return readInt(globalConfig, key);
     }
 
-    private String readString(JSONObject jsonObject, String key) {
+    public static String readString(JSONObject jsonObject, String key) {
         Object value = jsonObject.get(key);
         if (value == null) {
             return null;
@@ -304,7 +228,7 @@ public class Config {
         return value.toString();
     }
 
-    private int readInt(JSONObject jsonObject, String key) {
+    public static int readInt(JSONObject jsonObject, String key) {
         Object value = jsonObject.get(key);
         if (value == null) {
             return -1;
@@ -312,7 +236,7 @@ public class Config {
         return Integer.valueOf(value.toString()).intValue();
     }
 
-    private Integer readInteger(JSONObject jsonObject, String key) {
+    public static Integer readInteger(JSONObject jsonObject, String key) {
         Object value = jsonObject.get(key);
         if (value == null) {
             return null;
