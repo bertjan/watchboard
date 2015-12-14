@@ -237,7 +237,7 @@ function fetchDashboardConfig() {
   $.ajax({
     url: '../api/v1/config',
     success:function(data) {
-      $("#config").text(JSON.stringify(data.config));
+      $("#config").text(JSON.stringify(data.config, null, 2));
     },
     error:function(jqXHR, textStatus,errorThrown) {
       $("#config").text("Fetching config failed.");
