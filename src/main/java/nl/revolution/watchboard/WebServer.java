@@ -37,18 +37,6 @@ public class WebServer {
         configContextHandler.setHandler(configResource);
         webHandlers.addHandler(configContextHandler);
 
-        // Dashboard-specific context/resource handler for second request (dashboard.html).
-        Config.getInstance().getDashboardIds().stream().forEach(dashboardId -> {
-            ResourceHandler dashboardResource = new ResourceHandler();
-            dashboardResource.setDirectoriesListed(false);
-            dashboardResource.setResourceBase(webDir);
-            dashboardResource.setWelcomeFiles(new String[]{"dashboard.html"});
-            ContextHandler dashboardContextHandler;
-            dashboardContextHandler = new ContextHandler(Config.getInstance().getContextRoot() + dashboardId);
-            dashboardContextHandler.setHandler(dashboardResource);
-            webHandlers.addHandler(dashboardContextHandler);
-        });
-
         webHandlers.addHandler(new APIHandler());
         webHandlers.addHandler(new NotFoundHandler());
         GzipHandler gzipHandler = new GzipHandler();

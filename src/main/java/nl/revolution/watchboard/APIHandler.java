@@ -19,6 +19,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
@@ -35,6 +37,7 @@ public class APIHandler extends AbstractHandler {
     private static final String LOADING_ICON_PATH = "/web/loading.gif";
     private static final Charset CHARSET_UTF_8 = Charset.forName("UTF-8");
     private static final int USER_STATS_LOG_INTERVAL_MINUTES = 5;
+    private static String dashboardHTML;
 
     private Set<String> userStats = new HashSet<>();
     private long tsLastLoggedUserStats = 0;
@@ -74,6 +77,14 @@ public class APIHandler extends AbstractHandler {
             return;
         }
 
+        // Serve dashboard.html for all configured dashboards.
+        for (String dashboardId : Config.getInstance().getDashboardIds()) {
+            if (requestURI.equals(Config.getInstance().getContextRoot() + dashboardId)) {
+                createDashboardHTMLResponse(baseRequest, response);
+                return;
+            }
+        }
+
         LOG.info("Could not match a request for requestURI {}, responding with 404.", requestURI);
         new NotFoundHandler().handle(target, baseRequest, request, response);
     }
@@ -106,6 +117,34 @@ public class APIHandler extends AbstractHandler {
         } catch (IOException e) {
             LOG.error("Error while creating dashboards response: ", e);
         }
+    }
+
+
+    private void createDashboardHTMLResponse(Request baseRequest, HttpServletResponse response) {
+        response.setContentType(CONTENT_TYPE_JSON_UTF8);
+        response.setStatus(HttpServletResponse.SC_OK);
+        baseRequest.setHandled(true);
+        try {
+            response.setContentType("text/html");
+            OutputStream out = response.getOutputStream();
+            out.write(getDashboardHTML().getBytes(CHARSET_UTF_8));
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            LOG.error("Error while creating dashboard HTML response: ", e);
+        }
+    }
+
+    private String getDashboardHTML() {
+        if (dashboardHTML == null) {
+            try {
+                InputStream input = this.getClass().getClassLoader().getResourceAsStream("web/dashboard.html");
+                dashboardHTML = readFully(new InputStreamReader(input));
+            } catch (IOException e) {
+                LOG.error("Error while reading dashboard HTML: ", e);
+            }
+        }
+        return dashboardHTML;
     }
 
     private void createStatusResponse(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response, String contextRoot) throws IOException, ServletException {
