@@ -241,11 +241,11 @@ function fetchDashboardConfig() {
   $.ajax({
     url: '../api/v1/config',
     success:function(data) {
-      $("#config").text(stringifyDashboardConfig(data.config));
+      $("#config").val(stringifyDashboardConfig(data.config));
       $("#message").text(data.message);
     },
     error:function(jqXHR, textStatus,errorThrown) {
-      $("#config").text("Fetching config failed.");
+      $("#message").text("Fetching config failed: " + errorThrown);
     }
   });
 }
@@ -267,7 +267,7 @@ function saveDashboardConfig() {
     contentType: "application/json; charset=utf-8",
     dataType: "json",
     success:function(data) {
-      $("#config").text(stringifyDashboardConfig(data.config));
+      $("#config").val(stringifyDashboardConfig(data.config));
       $("#message").text(data.message);
     },
     error:function(jqXHR, textStatus,errorThrown) {
@@ -279,15 +279,58 @@ function saveDashboardConfig() {
 function stringifyDashboardConfig(data) {
   newdata = {};
   newdata.dashboards = [];
-  for (i = 0; i < data.dashboards.length; i++) {
-    dashboard = {
-      id: data.dashboards[i].id,
-      title: data.dashboards[i].title,
-      defaultNumberOfColumns: data.dashboards[i].defaultNumberOfColumns,
-      graphs: data.dashboards[i].graphs
-    };
-    newdata.dashboards.push(dashboard);
+  for (d = 0; d < data.dashboards.length; d++) {
+    sourceDashboard = data.dashboards[d];
+    targetDashboard = {};
+
+    // Copy properties in fixed order.
+    copyProperties(sourceDashboard, targetDashboard, ['id', 'title', 'defaultNumberOfColumns']);
+
+    // Copy graphs.
+    targetDashboard.graphs = [];
+    for (g = 0; g < sourceDashboard.graphs.length; g++) {
+      sourceGraph = sourceDashboard.graphs[g];
+      targetGraph = {};
+
+      // Copy properties in fixed order, then copy remaining properties.
+      copyProperties(sourceGraph, targetGraph, ['id', 'type', 'url', 'components', 'browserWidth', 'browserHeight']);
+      copyPropertiesDiff(sourceGraph, targetGraph);
+      targetDashboard.graphs.push(targetGraph);
+    }
+
+    // Copy remaining properties.
+    copyPropertiesDiff(sourceDashboard, targetDashboard);
+
+    newdata.dashboards.push(targetDashboard);
   }
 
   return JSON.stringify(newdata, null, 2);
+}
+
+
+function removeFromArray(arr, item) {
+  for(var i = arr.length; i--;) {
+    if(arr[i] === item) {
+      arr.splice(i, 1);
+    }
+  }
+}
+
+function copyProperties(source, target, keys) {
+  for (i=0; i<keys.length; i++) {
+    target[keys[i]] = source[keys[i]];
+  }
+}
+
+function copyPropertiesDiff(source, target) {
+  // Determine non-copied keys.
+  otherKeys = Object.keys(source);
+  addedKeys = Object.keys(target);
+  for (k = 0; k < addedKeys.length; k++) {
+    removeFromArray(otherKeys, addedKeys[k]);
+  }
+  // Copy non-copied properties.
+  for (k = 0; k < otherKeys.length; k++) {
+    target[otherKeys[k]] = source[otherKeys[k]];
+  }
 }
