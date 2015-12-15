@@ -79,7 +79,8 @@ public class APIHandler extends AbstractHandler {
 
         // Serve dashboard.html for all configured dashboards.
         for (String dashboardId : Config.getInstance().getDashboardIds()) {
-            if (requestURI.equals(Config.getInstance().getContextRoot() + dashboardId)) {
+            if (requestURI.equals(Config.getInstance().getContextRoot() + dashboardId)
+                    || requestURI.equals(Config.getInstance().getContextRoot() + dashboardId + "/")) {
                 createDashboardHTMLResponse(baseRequest, response);
                 return;
             }
