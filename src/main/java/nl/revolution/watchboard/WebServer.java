@@ -11,17 +11,17 @@ import org.slf4j.LoggerFactory;
 public class WebServer {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebServer.class);
+    public static final String STATIC_RESOURCE_PATH = WebServer.class.getClassLoader().getResource("web").toExternalForm();
+    // private static final String STATIC_RESOURCE_PATH = "/Users/bertjan/IdeaProjects/sandbox/watchboard/src/main/resources/web";
 
     public Server createServer() {
         int httpPort = Config.getInstance().getInt(Config.HTTP_PORT);
-        String webDir = this.getClass().getClassLoader().getResource("web").toExternalForm();
-        // String webDir = "/Users/bertjan/IdeaProjects/sandbox/watchboard/src/main/resources/web";
         HandlerList webHandlers = new HandlerList();
 
         // Resource handler for initial request (index.html).
         ResourceHandler indexResource = new ResourceHandler();
         indexResource.setDirectoriesListed(false);
-        indexResource.setResourceBase(webDir);
+        indexResource.setResourceBase(STATIC_RESOURCE_PATH);
         indexResource.setWelcomeFiles(new String[]{"index.html"});
         ContextHandler indexContextHandler = new ContextHandler(Config.getInstance().getString(Config.WEB_CONTEXTROOT));
         indexContextHandler.setHandler(indexResource);
@@ -30,7 +30,7 @@ public class WebServer {
         // Resource handler for config screen (config.html).
         ResourceHandler configResource = new ResourceHandler();
         configResource.setDirectoriesListed(false);
-        configResource.setResourceBase(webDir);
+        configResource.setResourceBase(STATIC_RESOURCE_PATH);
         configResource.setWelcomeFiles(new String[]{"config.html"});
         ContextHandler configContextHandler;
         configContextHandler = new ContextHandler(Config.getInstance().getContextRoot() + "config");

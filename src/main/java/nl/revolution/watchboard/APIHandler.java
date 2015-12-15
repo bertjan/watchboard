@@ -6,6 +6,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -24,7 +26,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -37,7 +41,10 @@ public class APIHandler extends AbstractHandler {
     private static final String LOADING_ICON_PATH = "/web/loading.gif";
     private static final Charset CHARSET_UTF_8 = Charset.forName("UTF-8");
     private static final int USER_STATS_LOG_INTERVAL_MINUTES = 5;
+
+    // Caches.
     private static String dashboardHTML;
+    private static Map<String, ContextHandler> resourceHandlerCache = new HashMap<>();
 
     private Set<String> userStats = new HashSet<>();
     private long tsLastLoggedUserStats = 0;
@@ -79,9 +86,9 @@ public class APIHandler extends AbstractHandler {
 
         // Serve dashboard.html for all configured dashboards.
         for (String dashboardId : Config.getInstance().getDashboardIds()) {
-            if (requestURI.equals(Config.getInstance().getContextRoot() + dashboardId)
-                    || requestURI.equals(Config.getInstance().getContextRoot() + dashboardId + "/")) {
-                createDashboardHTMLResponse(baseRequest, response);
+            if (requestURI.startsWith(Config.getInstance().getContextRoot() + dashboardId)) {
+                getResourceHandlerForDashboard(dashboardId).handle(target, baseRequest, request, response);
+                baseRequest.setHandled(true);
                 return;
             }
         }
@@ -90,6 +97,27 @@ public class APIHandler extends AbstractHandler {
         new NotFoundHandler().handle(target, baseRequest, request, response);
     }
 
+    private ContextHandler getResourceHandlerForDashboard(String dashboardId) {
+        // Fetch resource handler from cache.
+        if (resourceHandlerCache.get(dashboardId) == null) {
+            LOG.debug("Creating dashboard resource handler for dashboard '" + dashboardId + "'.");
+            ResourceHandler dashboardResource = new ResourceHandler();
+            dashboardResource.setDirectoriesListed(false);
+            dashboardResource.setResourceBase(WebServer.STATIC_RESOURCE_PATH);
+            dashboardResource.setWelcomeFiles(new String[]{"dashboard.html"});
+            ContextHandler dashboardContextHandler;
+            dashboardContextHandler = new ContextHandler(Config.getInstance().getContextRoot() + dashboardId);
+            dashboardContextHandler.setHandler(dashboardResource);
+            try {
+                dashboardContextHandler.start();
+            } catch (Exception e) {
+                LOG.error("Error starting context handler for dashboard '" + dashboardId + "': ", e);
+            }
+            resourceHandlerCache.put(dashboardId, dashboardContextHandler);
+        }
+
+        return resourceHandlerCache.get(dashboardId);
+    }
 
     private void createDashboardsResponse(Request baseRequest, HttpServletResponse response) {
         response.setContentType(CONTENT_TYPE_JSON_UTF8);
