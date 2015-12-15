@@ -90,6 +90,7 @@ public class PerformrPlugin implements WatchboardPlugin {
         try {
             LOG.debug("Starting update of {}.", graph.getImagePath());
             WebDriver driver = wrappedDriver.getDriver();
+            driver.manage().window().setSize(new Dimension(2000, 1000));
             driver.get(performrPlugin.getLoginUrl());
 
             long loadingStart = System.currentTimeMillis();
@@ -106,7 +107,7 @@ public class PerformrPlugin implements WatchboardPlugin {
                 doSleep(1000);
                 long waitingForMS = System.currentTimeMillis() - loadingStart;
                 if ((waitingForMS / 1000) > 10) {
-                    // Waited for over 30 seconds; break.
+                    // Waited for over 10 seconds; break.
                     LOG.error("Timed out waiting for Performr component selection to appear.");
 
                     // Re-login to fix issue.
@@ -147,7 +148,7 @@ public class PerformrPlugin implements WatchboardPlugin {
 
         // Resize fix.
         Dimension size = driver.manage().window().getSize();
-        driver.manage().window().setSize(new Dimension(200 , size.getHeight()));
+        driver.manage().window().setSize(new Dimension(200, size.getHeight()));
         driver.manage().window().setSize(size);
 
         driver.manage().window().setSize(new Dimension(width, height));
