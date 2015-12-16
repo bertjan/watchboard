@@ -276,11 +276,15 @@ public class Config {
         return dashboardsConfig;
     }
 
-    public void updateDashboardsConfig(String dashboardsConfig) {
-        dashboardConfigStore.updateConfig(dashboardsConfig);
+    public void updateDashboardsConfig(String dashboardsConfig, String tsPreviousUpdate) {
+        dashboardConfigStore.updateConfig(dashboardsConfig, tsPreviousUpdate);
 
         // Trigger check for config update to make sure that the config in memory is up to date.
         Config.getInstance().checkForConfigUpdate();
+    }
+
+    public String getDashboardConfigLastModified() {
+        return dashboardConfigLastModified;
     }
 
 }

@@ -21,7 +21,7 @@ public class DiskConfigStore implements DashboardConfig {
     }
 
     @Override
-    public void updateConfig(String config) {
+    public void updateConfig(String config, String tsPreviousUpdate) {
         throw new NotImplementedException("Disk config can't be updated (yet).");
     }
 

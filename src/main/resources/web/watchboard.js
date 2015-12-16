@@ -241,8 +241,7 @@ function fetchDashboardConfig() {
   $.ajax({
     url: '../api/v1/config',
     success:function(data) {
-      $("#config").val(stringifyDashboardConfig(data.config));
-      $("#message").text(data.message);
+      updateConfigTextarea(data);
     },
     error:function(jqXHR, textStatus,errorThrown) {
       $("#message").text("Fetching config failed: " + errorThrown);
@@ -255,6 +254,7 @@ function saveDashboardConfig() {
   data = {};
   try {
     data.config = JSON.parse($("#config").val());
+    data.updatedAt = $("#updatedAt").text();
   } catch (e) {
     $("#message").text(e);
     return;
@@ -267,13 +267,19 @@ function saveDashboardConfig() {
     contentType: "application/json; charset=utf-8",
     dataType: "json",
     success:function(data) {
-      $("#config").val(stringifyDashboardConfig(data.config));
-      $("#message").text(data.message);
+      updateConfigTextarea(data);
     },
     error:function(jqXHR, textStatus,errorThrown) {
       $("#message").text("Saving config failed: " + errorThrown);
     }
   });
+}
+
+
+function updateConfigTextarea(data) {
+  $("#config").val(stringifyDashboardConfig(data.config));
+  $("#message").text(data.message);
+  $("#updatedAt").text(data.updatedAt);
 }
 
 function stringifyDashboardConfig(data) {

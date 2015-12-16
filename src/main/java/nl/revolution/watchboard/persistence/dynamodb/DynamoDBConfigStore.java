@@ -52,7 +52,7 @@ public class DynamoDBConfigStore implements DashboardConfig {
     }
 
     @Override
-    public void updateConfig(String dashboardConfig) {
+    public void updateConfig(String dashboardConfig, String tsPreviousUpdate) {
         JSONObject configJo;
         try {
             configJo = (JSONObject)new JSONParser().parse(dashboardConfig);
@@ -66,9 +66,16 @@ public class DynamoDBConfigStore implements DashboardConfig {
             throw new RuntimeException("Error validating config: " + validationResult);
         }
 
-        // TODO: locking on UPDATED_AT_KEY
-
         Item oldConfig = table.getItem(new PrimaryKey().addComponent(ID_KEY, DASHBOARD_CONFIG_DOCUMENT_KEY));
+        String tsUpdateFromDB = oldConfig.getString("updatedAt");
+
+        if (!tsUpdateFromDB.equals(tsPreviousUpdate)) {
+            LOG.error("Error while updating dashboard config: timestamp from request ('" + tsPreviousUpdate + "') does not match " +
+                    "timestamp from database ('" + tsUpdateFromDB + "').");
+            throw new RuntimeException("Update failed: configuration was saved by another user while you were editing it. " +
+                    "Refresh the page and perform your change again to continue.");
+        }
+
         String currentTime = LocalDateTime.now().toString();
         String newId = DASHBOARD_CONFIG_DOCUMENT_KEY + "-" + currentTime;
         oldConfig.withKeyComponent(ID_KEY, newId);

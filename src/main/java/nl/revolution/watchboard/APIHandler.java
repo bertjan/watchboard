@@ -229,6 +229,7 @@ public class APIHandler extends AbstractHandler {
         JSONObject jsonResponse = new JSONObject();
         jsonResponse.put("config", Config.getInstance().getDashboardsConfig());
         jsonResponse.put("persistenceType", Config.getInstance().getString(Config.DASHBOARD_CONFIG_PERSISTENCE_TYPE));
+        jsonResponse.put("updatedAt", Config.getInstance().getDashboardConfigLastModified());
         if (message != null) {
             jsonResponse.put("message", message);
         }
@@ -254,7 +255,8 @@ public class APIHandler extends AbstractHandler {
             return;
         }
         String dashboardConfig = ((JSONObject)postDataJo.get("config")).toJSONString();
-        Config.getInstance().updateDashboardsConfig(dashboardConfig);
+        String updatedAt = String.valueOf(postDataJo.get("updatedAt"));
+        Config.getInstance().updateDashboardsConfig(dashboardConfig, updatedAt);
 
         createGETConfigResponse(baseRequest, response, "Dashboard configuration saved.");
     }
