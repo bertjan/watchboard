@@ -157,9 +157,10 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 return false;
             }
 
-            // Wait until flot-base element is present.
+            // Wait until graph is present.
             driver.findElement(By.className("flot-base"));
-            // doSleep(250);
+            driver.findElement(By.className("flot-overlay"));
+            doSleep(250);
 
             try {
                 takeScreenShot(driver, driver.findElement(By.id("gwt-debug-graphContainer")), filename);
