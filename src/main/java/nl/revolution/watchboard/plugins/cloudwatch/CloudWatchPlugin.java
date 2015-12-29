@@ -7,6 +7,7 @@ import nl.revolution.watchboard.plugins.WatchboardPlugin;
 import nl.revolution.watchboard.utils.WebDriverWrapper;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
@@ -28,6 +29,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
     private static final int MAX_GRAPH_LOADING_TIME_IN_SECONDS = 30;
 
     private static final Logger LOG = LoggerFactory.getLogger(CloudWatchPlugin.class);
+    public static final double GRAPH_CANVAS_FILL_RATE_THRESHOLD = 0.08d;
 
     private boolean stop;
 
@@ -143,13 +145,8 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 }
             });
 
-
-            driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.tagName("button")).stream().forEach(button -> {
-                if ("Update Graph".equals(button.getAttribute("title"))) {
-                    button.click();
-                }
-            });
-
+            // Trigger re-draw to prevent drawing issues.
+            triggerGraphRedraw(driver);
 
             // Wait until loading is finished.
             boolean graphLoaded = waitUntilGraphIsLoaded(filename);
@@ -157,10 +154,46 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 return false;
             }
 
-            // Wait until graph is present.
-            driver.findElement(By.className("flot-base"));
-            driver.findElement(By.className("flot-overlay"));
-            doSleep(250);
+            double fillRate = getGraphCanvasFillRate(driver);
+
+            if (fillRate < GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
+                LOG.debug(filename + ": fillRate " + fillRate + " is below threshold, entering retry loop.");
+
+                // try/retry process
+                for (int retry = 0; retry < 3; retry++) {
+
+                    // wait a bit for the rendering to finish
+                    doSleep(250);
+
+                    fillRate = getGraphCanvasFillRate(driver);
+                    LOG.debug(filename + ": fillRate at start of retry iteration " + retry + ": " + fillRate);
+
+                    if (fillRate > GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
+                        LOG.debug(filename + ": fillRate is above threshold at retry iteration " + retry + ", breaking.");
+                        break;
+                    }
+
+                    LOG.debug(filename + ": fillRate is still below threshold, triggering redraw");
+
+                    // Redraw, wait until loading is finished.
+                    triggerGraphRedraw(driver);
+                    graphLoaded = waitUntilGraphIsLoaded(filename);
+                    if (!graphLoaded) {
+                        return false;
+                    }
+
+                    if (fillRate > GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
+                        LOG.debug(filename + ": fillRate is above threshold after redraw at retry iteration " + retry + ", breaking.");
+                        break;
+                    }
+
+                    if (retry == 2) {
+                        LOG.debug(filename + ": fillRate max redraw retries exceeded, giving up for now.");
+                    }
+
+                }
+            }
+
 
             try {
                 takeScreenShot(driver, driver.findElement(By.id("gwt-debug-graphContainer")), filename);
@@ -178,6 +211,37 @@ public class CloudWatchPlugin implements WatchboardPlugin {
         return true;
     }
 
+    private void triggerGraphRedraw(WebDriver driver) {
+        driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.tagName("button")).stream().forEach(button -> {
+            if ("Update Graph".equals(button.getAttribute("title"))) {
+                button.click();
+            }
+        });
+    }
+
+    private Double getGraphCanvasFillRate(WebDriver driver) {
+        String result = (String) ((JavascriptExecutor)driver).executeScript(
+                "var canvas = document.getElementsByClassName('flot-base')[0]\n" +
+                "var cx = canvas.getContext('2d');" +
+                "var pixels = cx.getImageData(0, 0, canvas.width, canvas.height);\n" +
+                "var len = pixels.data.length;\n" +
+                "var white = 0;\n" +
+                "var filled = 0;\n" +
+                "for (i = 0; i < len; i += 4) {\n" +
+                "  if (pixels.data[i] === 0 &&\n" +
+                "      pixels.data[i+1] === 0 &&\n" +
+                "      pixels.data[i+2] === 0) {\n" +
+                "    white++;\n" +
+                "  } else {\n" +
+                "    filled++;\n" +
+                "  }\n" +
+                "}\n" +
+                "return white + ',' + filled;");
+        int white = Integer.parseInt(result.split(",")[0]);
+        int filled = Integer.parseInt(result.split(",")[1]);
+        Double fillRate = ((double)filled / (filled + white));
+        return fillRate;
+    }
 
     private boolean waitUntilGraphIsLoaded(String filename) {
         long loadingStart = System.currentTimeMillis();
