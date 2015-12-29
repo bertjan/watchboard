@@ -188,7 +188,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                     }
 
                     if (retry == 2) {
-                        LOG.debug(filename + ": fillRate max redraw retries exceeded, giving up for now.");
+                        LOG.debug(filename + ": fillRate at " + fillRate + ", max redraw retries exceeded, giving up for now.");
                     }
 
                 }
