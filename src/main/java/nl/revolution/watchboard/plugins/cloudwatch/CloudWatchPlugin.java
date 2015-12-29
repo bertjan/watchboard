@@ -162,7 +162,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 // try/retry process
                 for (int retry = 0; retry < 2; retry++) {
 
-                    // wait a bit for the rendering to finish
+                    // Wait a bit for the rendering to finish.
                     doSleep(250);
 
                     double fillRate = getGraphCanvasFillRate(driver);
