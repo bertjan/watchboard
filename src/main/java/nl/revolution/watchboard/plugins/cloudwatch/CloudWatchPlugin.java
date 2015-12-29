@@ -160,7 +160,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 LOG.debug(filename + ": fillRate " + initialFillRate + " is below threshold, entering retry loop.");
 
                 // try/retry process
-                for (int retry = 0; retry < 3; retry++) {
+                for (int retry = 0; retry < 2; retry++) {
 
                     // wait a bit for the rendering to finish
                     doSleep(250);
