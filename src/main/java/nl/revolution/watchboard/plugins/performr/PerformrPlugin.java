@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static nl.revolution.watchboard.utils.WebDriverUtils.doSleep;
@@ -140,6 +141,8 @@ public class PerformrPlugin implements WatchboardPlugin {
         } catch (Exception e) {
             LOG.error("Exception while performing Performr update: ", e);
         }
+
+        performrPlugin.setTsLastUpdated(LocalDateTime.now());
     }
 
 

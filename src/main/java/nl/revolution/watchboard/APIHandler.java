@@ -1,6 +1,7 @@
 package nl.revolution.watchboard;
 
 import nl.revolution.watchboard.data.Dashboard;
+import nl.revolution.watchboard.data.Plugin;
 import nl.revolution.watchboard.utils.IpAddressUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -24,9 +25,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -267,7 +271,32 @@ public class APIHandler extends AbstractHandler {
         baseRequest.setHandled(true);
 
         JSONObject jsonResponse = new JSONObject();
-        jsonResponse.put("status", "all is well.");
+
+        JSONArray pluginsJa = new JSONArray();
+        List<Plugin> plugins = Config.getInstance().getPlugins();
+        for (Plugin plugin : plugins) {
+            LocalDateTime pluginLastUpdated = plugin.getTsLastUpdated();
+            Long secondsSincePreviousUpdate = null;
+            String updateIntervalStatus = "NO DATA";
+            if (pluginLastUpdated != null) {
+                secondsSincePreviousUpdate = pluginLastUpdated.until(LocalDateTime.now(), ChronoUnit.SECONDS);
+                // if previous update was less the update interval plus 1 minute, all is well.
+                if (secondsSincePreviousUpdate < (plugin.getUpdateIntervalSeconds() + 60)) {
+                    updateIntervalStatus = "OK";
+                } else {
+                    updateIntervalStatus = "ERROR";
+                }
+            }
+
+            JSONObject pluginStatusJo = new JSONObject();
+            pluginStatusJo.put("type", plugin.getType().toString());
+            pluginStatusJo.put("tsLastUpdated", pluginLastUpdated);
+            pluginStatusJo.put("secondsSincePreviousUpdate", secondsSincePreviousUpdate);
+            pluginStatusJo.put("updateIntervalStatus", updateIntervalStatus);
+            pluginsJa.add(pluginStatusJo);
+        }
+
+        jsonResponse.put("plugins", pluginsJa);
 
         try {
             OutputStream out = response.getOutputStream();

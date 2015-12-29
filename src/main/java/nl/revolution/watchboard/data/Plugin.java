@@ -1,5 +1,7 @@
 package nl.revolution.watchboard.data;
 
+import java.time.LocalDateTime;
+
 public class Plugin {
 
     private Graph.Type type;
@@ -7,6 +9,7 @@ public class Plugin {
     private String password;
     private String loginUrl;
     private int updateIntervalSeconds;
+    private LocalDateTime tsLastUpdated;
 
     public Graph.Type getType() {
         return type;
@@ -47,4 +50,13 @@ public class Plugin {
     public void setUpdateIntervalSeconds(int updateIntervalSeconds) {
         this.updateIntervalSeconds = updateIntervalSeconds;
     }
+
+    public void setTsLastUpdated(LocalDateTime tsLastUpdated) {
+        this.tsLastUpdated = tsLastUpdated;
+    }
+
+    public LocalDateTime getTsLastUpdated() {
+        return tsLastUpdated;
+    }
+
 }

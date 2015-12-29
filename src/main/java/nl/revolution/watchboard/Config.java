@@ -208,6 +208,10 @@ public class Config {
         return null;
     }
 
+    public List<Plugin> getPlugins() {
+        return plugins;
+    }
+
     public Plugin getPlugin(Graph.Type type) {
         return getPlugin(plugins, type);
     }

@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 import static nl.revolution.watchboard.utils.WebDriverUtils.doSleep;
@@ -206,6 +207,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
             LOG.error("Error occurred while fetching report for {} ", filename);
             return false;
         }
+        cloudWatchPlugin.setTsLastUpdated(LocalDateTime.now());
         long end = System.currentTimeMillis();
         LOG.info("Updating " + filename + " took " + (end - start) + " ms.");
         return true;
