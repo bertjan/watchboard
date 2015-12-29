@@ -169,7 +169,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                     LOG.debug(filename + ": fillRate at start of retry iteration " + retry + ": " + fillRate);
 
                     if (fillRate > GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
-                        LOG.debug(filename + ": fillRate is above threshold at retry iteration " + retry + ", breaking - initial fillRate was " + initialFillRate + ".");
+                        LOG.debug(filename + ": fillRate (" + fillRate + ") is above threshold at retry iteration " + retry + ", breaking - initial fillRate was " + initialFillRate + ".");
                         break;
                     }
 
@@ -183,7 +183,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                     }
 
                     if (fillRate > GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
-                        LOG.debug(filename + ": fillRate is above threshold after redraw at retry iteration " + retry + ", breaking - initial fillRate was " + initialFillRate + ".");
+                        LOG.debug(filename + ": fillRate (" + fillRate + ") is above threshold after redraw at retry iteration " + retry + ", breaking - initial fillRate was " + initialFillRate + ".");
                         break;
                     }
 
