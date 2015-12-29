@@ -154,10 +154,10 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 return false;
             }
 
-            double fillRate = getGraphCanvasFillRate(driver);
+            double initialFillRate = getGraphCanvasFillRate(driver);
 
-            if (fillRate < GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
-                LOG.debug(filename + ": fillRate " + fillRate + " is below threshold, entering retry loop.");
+            if (initialFillRate < GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
+                LOG.debug(filename + ": fillRate " + initialFillRate + " is below threshold, entering retry loop.");
 
                 // try/retry process
                 for (int retry = 0; retry < 3; retry++) {
@@ -165,11 +165,11 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                     // wait a bit for the rendering to finish
                     doSleep(250);
 
-                    fillRate = getGraphCanvasFillRate(driver);
+                    double fillRate = getGraphCanvasFillRate(driver);
                     LOG.debug(filename + ": fillRate at start of retry iteration " + retry + ": " + fillRate);
 
                     if (fillRate > GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
-                        LOG.debug(filename + ": fillRate is above threshold at retry iteration " + retry + ", breaking.");
+                        LOG.debug(filename + ": fillRate is above threshold at retry iteration " + retry + ", breaking - initial fillRate was " + initialFillRate + ".");
                         break;
                     }
 
@@ -183,7 +183,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                     }
 
                     if (fillRate > GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
-                        LOG.debug(filename + ": fillRate is above threshold after redraw at retry iteration " + retry + ", breaking.");
+                        LOG.debug(filename + ": fillRate is above threshold after redraw at retry iteration " + retry + ", breaking - initial fillRate was " + initialFillRate + ".");
                         break;
                     }
 
