@@ -11,7 +11,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <nexus.host>https://enter.your.nexus.host.here</nexus.host>
-        <selenium.version>2.47.2</selenium.version>
+        <selenium.version>2.51.0</selenium.version>
     </properties>
 
     <dependencies>
