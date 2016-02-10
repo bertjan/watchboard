@@ -146,7 +146,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
             });
 
             // Trigger re-draw to prevent drawing issues.
-            // triggerGraphRedraw(driver);
+            triggerGraphRedraw(driver);
 
             // Wait until loading is finished.
             boolean graphLoaded = waitUntilGraphIsLoaded(filename);
@@ -212,7 +212,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
         return true;
     }
 
-    /*
+
     private void triggerGraphRedraw(WebDriver driver) {
         driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.tagName("button")).stream().forEach(button -> {
             if ("Update Graph".equals(button.getAttribute("title"))) {
@@ -221,6 +221,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
         });
     }
 
+    /*
     private Double getGraphCanvasFillRate(WebDriver driver) {
         String result = (String) ((JavascriptExecutor)driver).executeScript(
                 "var canvas = document.getElementsByClassName('flot-base')[0]\n" +
