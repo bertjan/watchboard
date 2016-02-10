@@ -38,7 +38,7 @@
         },
         {
           "type" : "performr",
-          "id" : "myfirstdashboard-myfirstperformr",
+          "id" : "myfirstdashboard-myfirstperformrgraph",
           "components" : [ "Component 1", "Component 2" ],
           "browserWidth" : 1600,
           "browserHeight" : 600
@@ -50,8 +50,8 @@
       "title" : "Dashboard with source from other dashboard",
       "graphs" : [
         {
-          "type" : "myfirstdashboard-myfirstcloudwatchgraph",
-          "id" : "p3-prdAppCPUIncomingNetwork36hrs"
+          "type" : "disk",
+          "id" : "myfirstdashboard-myfirstcloudwatchgraph"
         }
       ]
     }
