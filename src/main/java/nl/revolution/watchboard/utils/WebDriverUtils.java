@@ -12,10 +12,24 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class WebDriverUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebDriverUtils.class);
+    public static final int WEBDRIVER_TIMEOUT_SECONDS = 60;
+
+    public static void disableTimeouts(WebDriver driver) {
+        driver.manage().timeouts().pageLoadTimeout(0, TimeUnit.SECONDS);
+        driver.manage().timeouts().setScriptTimeout(0, TimeUnit.SECONDS);
+        driver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
+    }
+
+    public static void enableTimeouts(WebDriver driver) {
+        driver.manage().timeouts().pageLoadTimeout(WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        driver.manage().timeouts().setScriptTimeout(WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        driver.manage().timeouts().implicitlyWait(WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    }
 
     public static void takeScreenShot(WebDriver driver, WebElement element, String fileName) throws IOException {
         File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);

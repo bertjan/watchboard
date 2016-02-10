@@ -4,10 +4,10 @@ import nl.revolution.watchboard.Config;
 import nl.revolution.watchboard.data.Graph;
 import nl.revolution.watchboard.data.Plugin;
 import nl.revolution.watchboard.plugins.WatchboardPlugin;
+import nl.revolution.watchboard.utils.WebDriverUtils;
 import nl.revolution.watchboard.utils.WebDriverWrapper;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.concurrent.TimeUnit;
 
 import static nl.revolution.watchboard.utils.WebDriverUtils.doSleep;
 import static nl.revolution.watchboard.utils.WebDriverUtils.takeScreenShot;
@@ -30,7 +29,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
     private static final int MAX_GRAPH_LOADING_TIME_IN_SECONDS = 30;
 
     private static final Logger LOG = LoggerFactory.getLogger(CloudWatchPlugin.class);
-    public static final double GRAPH_CANVAS_FILL_RATE_THRESHOLD = 0.08d;
+    // public static final double GRAPH_CANVAS_FILL_RATE_THRESHOLD = 0.08d;
 
     private boolean stop;
 
@@ -50,7 +49,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
             driver.manage().window().setSize(new Dimension(800, 600));
             driver.get(cloudWatchPlugin.getLoginUrl());
             doSleep(500);
-            driver.get("https://console.aws.amazon.com/iam/home");
+            driver.get("https://console.aws.amazon.com/console/home");
             verifyTitle("Amazon Web Services Sign-In");
             driver.findElement(By.id("username")).sendKeys(cloudWatchPlugin.getUsername());
             driver.findElement(By.id("password")).sendKeys(cloudWatchPlugin.getPassword());
@@ -136,13 +135,9 @@ public class CloudWatchPlugin implements WatchboardPlugin {
 
             loadPageAsync(driver, reportUrl);
 
-            LOG.info("progress - 1");
-
             // Select bottom option in timezone select (local time).
             Select timezoneSelect = new Select(driver.findElement(By.id("gwt-debug-timezoneList")));
             timezoneSelect.selectByIndex(timezoneSelect.getOptions().size() - 1);
-
-            LOG.info("progress - 2");
 
             driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.className("gwt-Image")).stream().forEach(image -> {
                 if (MAXIMIZE_IMAGE_CONTENT.equals(image.getAttribute("src"))) {
@@ -150,62 +145,55 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 }
             });
 
-            LOG.info("progress - 3");
-
             // Trigger re-draw to prevent drawing issues.
-            triggerGraphRedraw(driver);
-
-            LOG.info("progress - 4");
+            // triggerGraphRedraw(driver);
 
             // Wait until loading is finished.
-//            boolean graphLoaded = waitUntilGraphIsLoaded(filename);
-//            if (!graphLoaded) {
-//                return false;
-//            }
+            boolean graphLoaded = waitUntilGraphIsLoaded(filename);
+            if (!graphLoaded) {
+                return false;
+            }
 
-            LOG.info("progress - 5");
+            /*
+            double initialFillRate = getGraphCanvasFillRate(driver);
 
-//            double initialFillRate = getGraphCanvasFillRate(driver);
-//
-//            if (initialFillRate < GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
-//                LOG.debug(filename + ": fillRate " + initialFillRate + " is below threshold, entering retry loop.");
-//
-//                // try/retry process
-//                for (int retry = 0; retry < 2; retry++) {
-//
-//                    // Wait a bit for the rendering to finish.
-//                    doSleep(250);
-//
-//                    double fillRate = getGraphCanvasFillRate(driver);
-//                    LOG.debug(filename + ": fillRate at start of retry iteration " + retry + ": " + fillRate);
-//
-//                    if (fillRate > GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
-//                        LOG.debug(filename + ": fillRate (" + fillRate + ") is above threshold at retry iteration " + retry + ", breaking - initial fillRate was " + initialFillRate + ".");
-//                        break;
-//                    }
-//
-//                    LOG.debug(filename + ": fillRate is still below threshold, triggering redraw");
-//
-//                    // Redraw, wait until loading is finished.
-//                    triggerGraphRedraw(driver);
-////                    graphLoaded = waitUntilGraphIsLoaded(filename);
-////                    if (!graphLoaded) {
-////                        return false;
-////                    }
-//
-//                    if (fillRate > GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
-//                        LOG.debug(filename + ": fillRate (" + fillRate + ") is above threshold after redraw at retry iteration " + retry + ", breaking - initial fillRate was " + initialFillRate + ".");
-//                        break;
-//                    }
-//
-//                    if (retry == 1) {
-//                        LOG.debug(filename + ": fillRate at " + fillRate + ", max redraw retries exceeded, giving up for now.");
-//                    }
-//
-//                }
-//            }
+            if (initialFillRate < GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
+                LOG.debug(filename + ": fillRate " + initialFillRate + " is below threshold, entering retry loop.");
 
-            doSleep(1000);
+                // try/retry process
+                for (int retry = 0; retry < 2; retry++) {
+
+                    // Wait a bit for the rendering to finish.
+                    doSleep(250);
+
+                    double fillRate = getGraphCanvasFillRate(driver);
+                    LOG.debug(filename + ": fillRate at start of retry iteration " + retry + ": " + fillRate);
+
+                    if (fillRate > GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
+                        LOG.debug(filename + ": fillRate (" + fillRate + ") is above threshold at retry iteration " + retry + ", breaking - initial fillRate was " + initialFillRate + ".");
+                        break;
+                    }
+
+                    LOG.debug(filename + ": fillRate is still below threshold, triggering redraw");
+
+                    // Redraw, wait until loading is finished.
+                    triggerGraphRedraw(driver);
+                    graphLoaded = waitUntilGraphIsLoaded(filename);
+                    if (!graphLoaded) {
+                        return false;
+                    }
+
+                    if (fillRate > GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
+                        LOG.debug(filename + ": fillRate (" + fillRate + ") is above threshold after redraw at retry iteration " + retry + ", breaking - initial fillRate was " + initialFillRate + ".");
+                        break;
+                    }
+
+                    if (retry == 1) {
+                        LOG.debug(filename + ": fillRate at " + fillRate + ", max redraw retries exceeded, giving up for now.");
+                    }
+
+                }
+            }*/
 
             try {
                 takeScreenShot(driver, driver.findElement(By.id("gwt-debug-graphContainer")), filename);
@@ -224,6 +212,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
         return true;
     }
 
+    /*
     private void triggerGraphRedraw(WebDriver driver) {
         driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.tagName("button")).stream().forEach(button -> {
             if ("Update Graph".equals(button.getAttribute("title"))) {
@@ -254,13 +243,18 @@ public class CloudWatchPlugin implements WatchboardPlugin {
         int filled = Integer.parseInt(result.split(",")[1]);
         Double fillRate = ((double)filled / (filled + white));
         return fillRate;
-    }
+    }*/
 
     private boolean waitUntilGraphIsLoaded(String filename) {
         long loadingStart = System.currentTimeMillis();
         WebDriver driver = wrappedDriver.getDriver();
         while (true) {
-            if (!driver.findElement(By.id("gwt-debug-graphLoadingIndicator")).isDisplayed()) {
+            WebDriverUtils.disableTimeouts(driver);
+            boolean isLoading = driver.findElements(By.className("cwdb-loader-container")).size() > 0;
+            WebDriverUtils.enableTimeouts(driver);
+
+            if (!isLoading) {
+                doSleep(250);
                 long loadTimeMS = System.currentTimeMillis() - loadingStart;
                 LOG.debug("Graph {} loaded in {} ms.", filename, loadTimeMS);
                 break;
@@ -279,7 +273,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
 
     private void loadPageAsync(WebDriver driver, String url) {
         // Trick to speed up page loading.
-        driver.manage().timeouts().pageLoadTimeout(0, TimeUnit.MILLISECONDS);
+        WebDriverUtils.disableTimeouts(driver);
         try {
             driver.get(url);
         } catch (TimeoutException ignored) {
@@ -287,7 +281,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
         }
 
         // Back to original timeout.
-        driver.manage().timeouts().pageLoadTimeout(WebDriverWrapper.WEBDRIVER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        WebDriverUtils.enableTimeouts(driver);
     }
 
     @Override
