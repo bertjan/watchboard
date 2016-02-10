@@ -29,7 +29,6 @@ public class CloudWatchPlugin implements WatchboardPlugin {
     private static final int MAX_GRAPH_LOADING_TIME_IN_SECONDS = 30;
 
     private static final Logger LOG = LoggerFactory.getLogger(CloudWatchPlugin.class);
-    // public static final double GRAPH_CANVAS_FILL_RATE_THRESHOLD = 0.08d;
 
     private boolean stop;
 
@@ -130,8 +129,8 @@ public class CloudWatchPlugin implements WatchboardPlugin {
 
             // Perform dummy get to localhost to clear browser. This provides a workaround for rendering of an
             // axis that is not used.
-            String localURL = "http://localhost:" + Config.getInstance().getInt(Config.HTTP_PORT) + Config.getInstance().getContextRoot();
-            driver.get(localURL);
+            // String localURL = "http://localhost:" + Config.getInstance().getInt(Config.HTTP_PORT) + Config.getInstance().getContextRoot();
+            // driver.get(localURL);
 
             loadPageAsync(driver, reportUrl);
 
@@ -153,47 +152,6 @@ public class CloudWatchPlugin implements WatchboardPlugin {
             if (!graphLoaded) {
                 return false;
             }
-
-            /*
-            double initialFillRate = getGraphCanvasFillRate(driver);
-
-            if (initialFillRate < GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
-                LOG.debug(filename + ": fillRate " + initialFillRate + " is below threshold, entering retry loop.");
-
-                // try/retry process
-                for (int retry = 0; retry < 2; retry++) {
-
-                    // Wait a bit for the rendering to finish.
-                    doSleep(250);
-
-                    double fillRate = getGraphCanvasFillRate(driver);
-                    LOG.debug(filename + ": fillRate at start of retry iteration " + retry + ": " + fillRate);
-
-                    if (fillRate > GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
-                        LOG.debug(filename + ": fillRate (" + fillRate + ") is above threshold at retry iteration " + retry + ", breaking - initial fillRate was " + initialFillRate + ".");
-                        break;
-                    }
-
-                    LOG.debug(filename + ": fillRate is still below threshold, triggering redraw");
-
-                    // Redraw, wait until loading is finished.
-                    triggerGraphRedraw(driver);
-                    graphLoaded = waitUntilGraphIsLoaded(filename);
-                    if (!graphLoaded) {
-                        return false;
-                    }
-
-                    if (fillRate > GRAPH_CANVAS_FILL_RATE_THRESHOLD) {
-                        LOG.debug(filename + ": fillRate (" + fillRate + ") is above threshold after redraw at retry iteration " + retry + ", breaking - initial fillRate was " + initialFillRate + ".");
-                        break;
-                    }
-
-                    if (retry == 1) {
-                        LOG.debug(filename + ": fillRate at " + fillRate + ", max redraw retries exceeded, giving up for now.");
-                    }
-
-                }
-            }*/
 
             try {
                 takeScreenShot(driver, driver.findElement(By.id("gwt-debug-graphContainer")), filename);
@@ -221,31 +179,6 @@ public class CloudWatchPlugin implements WatchboardPlugin {
         });
     }
 
-    /*
-    private Double getGraphCanvasFillRate(WebDriver driver) {
-        String result = (String) ((JavascriptExecutor)driver).executeScript(
-                "var canvas = document.getElementsByClassName('flot-base')[0]\n" +
-                "var cx = canvas.getContext('2d');" +
-                "var pixels = cx.getImageData(0, 0, canvas.width, canvas.height);\n" +
-                "var len = pixels.data.length;\n" +
-                "var white = 0;\n" +
-                "var filled = 0;\n" +
-                "for (i = 0; i < len; i += 4) {\n" +
-                "  if (pixels.data[i] === 0 &&\n" +
-                "      pixels.data[i+1] === 0 &&\n" +
-                "      pixels.data[i+2] === 0) {\n" +
-                "    white++;\n" +
-                "  } else {\n" +
-                "    filled++;\n" +
-                "  }\n" +
-                "}\n" +
-                "return white + ',' + filled;");
-        int white = Integer.parseInt(result.split(",")[0]);
-        int filled = Integer.parseInt(result.split(",")[1]);
-        Double fillRate = ((double)filled / (filled + white));
-        return fillRate;
-    }*/
-
     private boolean waitUntilGraphIsLoaded(String filename) {
         long loadingStart = System.currentTimeMillis();
         WebDriver driver = wrappedDriver.getDriver();
@@ -267,7 +200,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
                 LOG.error("Max waiting time of {} seconds for loading graph expired, giving up.", MAX_GRAPH_LOADING_TIME_IN_SECONDS);
                 return false;
             }
-            doSleep(250);
+            doSleep(100);
         }
         return true;
     }
@@ -299,6 +232,5 @@ public class CloudWatchPlugin implements WatchboardPlugin {
     public int getUpdateInterval() {
         return cloudWatchPlugin.getUpdateIntervalSeconds();
     }
-
 
 }
