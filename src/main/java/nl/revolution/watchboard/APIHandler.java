@@ -89,7 +89,11 @@ public class APIHandler extends AbstractHandler {
         // Serve dashboard.html for all configured dashboards.
         for (String dashboardId : Config.getInstance().getDashboardIds()) {
             if (requestURI.startsWith(Config.getInstance().getContextRoot() + dashboardId)) {
-                getResourceHandlerForDashboard(dashboardId).handle(target, baseRequest, request, response);
+                getResourceHandlerForDashboard(dashboardId + "-v1", dashboardId, "dashboard.html").handle(target, baseRequest, request, response);
+                baseRequest.setHandled(true);
+                return;
+            } else if (requestURI.startsWith(Config.getInstance().getContextRoot() + "v2-" + dashboardId)) {
+                getResourceHandlerForDashboard(dashboardId + "-v2", "v2-" + dashboardId, "dashboard-v2.html").handle(target, baseRequest, request, response);
                 baseRequest.setHandled(true);
                 return;
             }
@@ -99,16 +103,16 @@ public class APIHandler extends AbstractHandler {
         new NotFoundHandler().handle(target, baseRequest, request, response);
     }
 
-    private ContextHandler getResourceHandlerForDashboard(String dashboardId) {
+    private ContextHandler getResourceHandlerForDashboard(String dashboardId, String contextPath, String htmlTemplate) {
         // Fetch resource handler from cache.
         if (resourceHandlerCache.get(dashboardId) == null) {
             LOG.debug("Creating dashboard resource handler for dashboard '" + dashboardId + "'.");
             ResourceHandler dashboardResource = new ResourceHandler();
             dashboardResource.setDirectoriesListed(false);
             dashboardResource.setResourceBase(WebServer.STATIC_RESOURCE_PATH);
-            dashboardResource.setWelcomeFiles(new String[]{"dashboard.html"});
+            dashboardResource.setWelcomeFiles(new String[]{htmlTemplate});
             ContextHandler dashboardContextHandler;
-            dashboardContextHandler = new ContextHandler(Config.getInstance().getContextRoot() + dashboardId);
+            dashboardContextHandler = new ContextHandler(Config.getInstance().getContextRoot() + contextPath);
             dashboardContextHandler.setHandler(dashboardResource);
             try {
                 dashboardContextHandler.start();

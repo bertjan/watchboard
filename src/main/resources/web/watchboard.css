@@ -81,6 +81,21 @@ html, body, div, span {
     margin: 3px 0 0 3px;
     padding: 0px;
 }
-#images { list-style-type: none; margin: 0; margin-top: 5px; padding: 0  }
+.images-draggable { list-style-type: none; margin: 0; margin-top: 5px; padding: 0  }
 #images li { float: left; text-align: left; margin-right: 8px; margin-top: 0px; overflow: auto; }
 
+
+
+.imageGrid {
+    /* Prevent vertical gaps */
+    width: 100%;
+    -webkit-column-gap:   0px;
+    -moz-column-gap:      0px;
+    column-gap:           0px;
+}
+.imageGrid img {
+    /* Just in case there are inline attributes */
+    width: 99% !important;
+    height: auto !important;
+    margin-bottom: 3px;
+}

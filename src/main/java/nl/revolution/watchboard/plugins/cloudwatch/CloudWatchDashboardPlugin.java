@@ -13,6 +13,9 @@ import static nl.revolution.watchboard.utils.WebDriverUtils.takeScreenShot;
 
 public class CloudWatchDashboardPlugin extends AbstractCloudWatchPlugin {
 
+    // TODO: configure and select time window in hours
+    // pick local time
+
     private static final Logger LOG = LoggerFactory.getLogger(CloudWatchDashboardPlugin.class);
 
     protected void performSingleUpdate(Graph graph) {

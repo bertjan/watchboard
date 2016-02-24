@@ -89,7 +89,10 @@ function renderDashboardList() {
         }
 
         $("#dashboards").html($("#dashboards").html() +
-          "<li><a href=\""+ dashboardLink + "\">" + escapeMarkup(dashboard.title) + "</a></li>");
+          "<li>" +
+          "<a href=\""+ dashboardLink + "\">" + escapeMarkup(dashboard.title) + "</a>" +
+          "  <a href=\"" + "v2-" + dashboardLink + "\"> (v2) </a>" +
+          "</li>");
       }
       $("#dashboards").html($("#dashboards").html() + "</ul>")
     },
@@ -104,7 +107,7 @@ function escapeMarkup(markup) {
   return $('<div/>').text(dashboard.title).html();
 }
 
-function performInitialGraphsRender() {
+function performInitialGraphsRender(version) {
   $.ajax({
     url: '../api/v1/status/' + dashboardId,
     success: function (data) {
@@ -112,44 +115,66 @@ function performInitialGraphsRender() {
       configLastUpdated = data.configLastUpdated;
       $("#title").text(data.title);
 
-      // Sort images based on order in url hash.
-      var imageOrder = getHashParam()["imageOrder"];
-      if(imageOrder) {
-        data.images.sort(function (a, b) {
-          return imageOrder.indexOf(a.id) < imageOrder.indexOf(b.id) ? -1 : 1;
-        });
+      if (version == "v1") {
+        // Sort images based on order in url hash.
+        var imageOrder = getHashParam()["imageOrder"];
+        if (imageOrder) {
+          data.images.sort(function (a, b) {
+            return imageOrder.indexOf(a.id) < imageOrder.indexOf(b.id) ? -1 : 1;
+          });
+        }
       }
 
       imageHTML = "";
-      for (var i = 0; i < data.images.length; i++) {
-        image = data.images[i];
-        imageHTML +=
-          "<li class=\"ui-state-default\" style=\"width: " + imageWidthPercentage + "%\"><a href=\"" + image.url + "\" target=\"_blank\">" +
-          "<img style=\"width: 100%\" id=\"" + image.id + "\" " +
-          "data-lastmodified=\"" + image.lastModified + "\" " +
-          "src=\"" + image.filename + "\" " +
-          "title=\"" + 'Last updated: ' + new Date(image.lastModified) + "\" " +
-          ">" +
-          "</a></li>";
+      if (version == "v1") {
+        for (var i = 0; i < data.images.length; i++) {
+          image = data.images[i];
+          imageHTML +=
+            "<li class=\"ui-state-default\" style=\"width: " + imageWidthPercentage + "%\"><a href=\"" + image.url + "\" target=\"_blank\">" +
+            "<img style=\"width: 100%\" id=\"" + image.id + "\" " +
+            "data-lastmodified=\"" + image.lastModified + "\" " +
+            "src=\"" + image.filename + "\" " +
+            "title=\"" + 'Last updated: ' + new Date(image.lastModified) + "\" " +
+            ">" +
+            "</a></li>";
+        }
+        imageHTML = '<ul id=\"imageList\">' + imageHTML + '</ul>';
+        $("#images").html(imageHTML);
+
+      } else if (version == "v2") {
+        for (var i = 0; i < data.images.length; i++) {
+          image = data.images[i];
+          imageHTML +=
+            "<a href=\"" + image.url + "\" target=\"_blank\">" +
+            "<img id=\"" + image.id + "\" " +
+            "data-lastmodified=\"" + image.lastModified + "\" " +
+            "src=\"" + image.filename + "\" " +
+            "title=\"" + 'Last updated: ' + new Date(image.lastModified) + "\" " +
+            ">" +
+            "</a>";
+        }
+        $("#images").html(imageHTML);
+        $("#images").attr("style", " -webkit-column-count: " + numberOfColumns + "; -moz-column-count: " + numberOfColumns + "; column-count: " + numberOfColumns + ";");
       }
 
-      imageHTML = '<ul id=\"imageList\">' + imageHTML + '</ul>';
-      $("#images").html(imageHTML);
 
-      setTimeout(function() {
-        // After initial render, set graphs to equal height.
-        setGraphsToEqualHeight();
-      }, 200);
 
-      setTimeout(function() {
-        // Enable dragging/sorting of graphs.
-        $("#images ul").sortable({
-          deactivate: function () {
-            setURLHash();
-          },
-          opacity: 0.7
-        });
-      }, 500);
+      if (version == "v1") {
+        setTimeout(function () {
+          // After initial render, set graphs to equal height.
+          setGraphsToEqualHeight();
+        }, 200);
+
+        setTimeout(function () {
+          // Enable dragging/sorting of graphs.
+          $("#images ul").sortable({
+            deactivate: function () {
+              setURLHash();
+            },
+            opacity: 0.7
+          });
+        }, 500);
+      }
 
 
     }
@@ -158,13 +183,13 @@ function performInitialGraphsRender() {
 }
 
 
-function startGraphUpdateLoop() {
+function startGraphUpdateLoop(version) {
 
   pathname = window.location.pathname;
   if (endsWith(pathname, '/')) {
     pathname = pathname.substring(0, pathname.length - 1);
   }
-  dashboardId = pathname.substring(pathname.lastIndexOf('/') + 1, pathname.length);
+  dashboardId = pathname.substring(pathname.lastIndexOf('/') + 1, pathname.length).replace("v2-", "");
 
   // Read number of columns from URL parameter.
   numberOfColumns = getHashParam()["columns"];
@@ -191,7 +216,7 @@ function startGraphUpdateLoop() {
   imageWidthPercentage = (100 / numberOfColumns) - 1;
 
   // Initial rendering.
-  performInitialGraphsRender();
+  performInitialGraphsRender(version);
 
   // Periodic update.
   setInterval(function () {
@@ -223,17 +248,24 @@ function startGraphUpdateLoop() {
           }
         }
 
-      setGraphsToEqualHeight();
+        if (version == "v1") {
+          setGraphsToEqualHeight();
+        }
+
 
       }
     });
     // Scan each second for updated images.
   }, 1000);
 
-  // Refresh page after resize to trigger re-render.
-  $(window).bind("debouncedresize", function() {
-    performInitialGraphsRender();
-  });
+  if (version == "v1") {
+    // Refresh page after resize to trigger re-render.
+    $(window).bind("debouncedresize", function() {
+      performInitialGraphsRender(version);
+    });
+  }
+
+
 
 }
 
