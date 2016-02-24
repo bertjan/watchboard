@@ -28,6 +28,11 @@ public class CloudWatchPlugin extends AbstractCloudWatchPlugin {
     }
 
     private boolean getReportScreenshot(String reportUrl, int width, int height, String filename) {
+        if (reportUrl == null) {
+            LOG.error("reportUrl is null for filename " + filename);
+            return true;
+        }
+
         long start = System.currentTimeMillis();
         try {
             WebDriver driver = wrappedDriver.getDriver();

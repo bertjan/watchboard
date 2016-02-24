@@ -96,7 +96,7 @@ public class KibanaPlugin implements WatchboardPlugin {
             size = 0;
             for (int i=0; i<20; i++) {
                 size = WebDriverUtils.numberOfElements(driver, By.className("visualize-chart"));
-                LOG.info("visualize-chart size: " + size);
+                // LOG.info("visualize-chart size: " + size);
                 if (size > 0) {
                     break;
                 }
@@ -106,6 +106,7 @@ public class KibanaPlugin implements WatchboardPlugin {
 
             if (WebDriverUtils.numberOfElements(driver, By.className("vis-wrapper")) > 0) {
                 LOG.info("vis-wrapper exists");
+                // TODO: is dit nodig?
                 // Find svg's in the first visualization.
 //                int svgs = driver.findElement(By.tagName("visualize")).findElements(By.tagName("svg")).size();
 //                if (svgs == 0) {

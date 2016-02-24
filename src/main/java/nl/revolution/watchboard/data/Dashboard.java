@@ -4,10 +4,14 @@ import nl.revolution.watchboard.Config;
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class Dashboard {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Dashboard.class);
 
     public static final String DASHBOARDS = "dashboards";
     public static final String GRAPHS = "graphs";
@@ -143,17 +147,17 @@ public class Dashboard {
         }
 
         // Postprocess step: try to find a matching URL for each graph of type 'disk'.
-        dashboards.forEach(dashboard -> dashboard.getGraphs().forEach(graphWithDiskSource -> {
+        dashboards.stream().flatMap(dbs -> dbs.getGraphs().stream())
+                .filter(graph -> graph.getType().equals(Graph.Type.DISK)).forEach(graphWithDiskSource -> {
             Optional<Graph> graphWithMatchingId =
-                    dashboards.stream()
-                            .map(d -> d.getGraphs())
-                            .flatMap(g -> g.stream())
+                    dashboards.stream().flatMap(dbs -> dbs.getGraphs().stream())
+                            .filter(graph -> !graph.getType().equals(Graph.Type.DISK))
                             .filter(graph -> graph.getId().equals(graphWithDiskSource.getId()))
                             .findFirst();
             if (graphWithMatchingId.isPresent()) {
                 graphWithDiskSource.setUrl(graphWithMatchingId.get().getUrl());
             }
-        }));
+        });
 
         return dashboards;
     }
