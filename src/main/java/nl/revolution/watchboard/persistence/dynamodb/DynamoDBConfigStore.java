@@ -48,6 +48,9 @@ public class DynamoDBConfigStore implements DashboardConfig {
     @Override
     public String readConfig() {
         Item config = readConfigAsItem();
+        if (config == null) {
+            return null;
+        }
         return config.toJSONPretty();
     }
 

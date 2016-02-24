@@ -1,8 +1,6 @@
 package nl.revolution.watchboard;
 
-import nl.revolution.watchboard.data.Dashboard;
-import nl.revolution.watchboard.data.Graph;
-import nl.revolution.watchboard.data.Plugin;
+import nl.revolution.watchboard.data.*;
 import nl.revolution.watchboard.persistence.DashboardConfig;
 import nl.revolution.watchboard.persistence.disk.DiskConfigStore;
 import nl.revolution.watchboard.persistence.dynamodb.DynamoDBConfigStore;
@@ -16,10 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Config {
@@ -90,9 +85,9 @@ public class Config {
         readGlobalConfig();
         validateGlobalConfig();
         readDashboardsConfig();
-        validateDashboardsConfig();
-        parsePlugins();
-        parseDashboards();
+         validateDashboardsConfig();
+         parsePlugins();
+         parseDashboards();
         globalConfigFileLastModifiedOnDisk = diskConfigStore.getLastUpdated();
         dashboardConfigLastModified = dashboardConfigStore.getLastUpdated();
 
@@ -154,10 +149,12 @@ public class Config {
         }
 
         String configStr = dashboardConfigStore.readConfig();
-
-        JSONObject fullConfig = (JSONObject) new JSONParser().parse(new StringReader(configStr));
         dashboardsConfig = new JSONObject();
-        dashboardsConfig.put("dashboards", fullConfig.get("dashboards"));
+
+        if (configStr != null) {
+            JSONObject fullConfig = (JSONObject) new JSONParser().parse(new StringReader(configStr));
+            dashboardsConfig.put("dashboards", fullConfig.get("dashboards"));
+        }
     }
 
 
@@ -175,7 +172,7 @@ public class Config {
 
         if (StringUtils.isNotEmpty(validationResults)) {
             LOG.error("Validation of dashboards config failed: \n" + validationResults);
-            throw new RuntimeException("Validcation of dashboards config failed.");
+            throw new RuntimeException("Validation of dashboards config failed.");
         }
     }
 
@@ -200,6 +197,10 @@ public class Config {
     }
 
     public static Plugin getPlugin(List<Plugin> plugins, Graph.Type type) {
+        if (plugins == null) {
+            return null;
+        }
+
         for (Plugin plugin : plugins) {
             if (type.equals(plugin.getType())) {
                 return plugin;

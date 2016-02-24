@@ -1,122 +1,29 @@
 package nl.revolution.watchboard.plugins.cloudwatch;
 
-import nl.revolution.watchboard.Config;
 import nl.revolution.watchboard.data.Graph;
-import nl.revolution.watchboard.data.Plugin;
-import nl.revolution.watchboard.plugins.WatchboardPlugin;
-import nl.revolution.watchboard.utils.WebDriverUtils;
-import nl.revolution.watchboard.utils.WebDriverWrapper;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Dimension;
-import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebDriverException;
-import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.Select;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 
-import static nl.revolution.watchboard.utils.WebDriverUtils.doSleep;
 import static nl.revolution.watchboard.utils.WebDriverUtils.takeScreenShot;
 
-public class CloudWatchPlugin implements WatchboardPlugin {
-
-    private static final String MAXIMIZE_IMAGE_CONTENT = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAOCAYAAADwikbvAAAAHElEQVR42mNwcXH5Ty5mGHjNpIBRzSNUM92TJwDOA1GY0jTyxAAAAABJRU5ErkJggg==";
-    private static final int MAX_GRAPH_LOADING_TIME_IN_SECONDS = 30;
+public class CloudWatchPlugin extends AbstractCloudWatchPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(CloudWatchPlugin.class);
 
-    private boolean stop;
-
-    private Plugin cloudWatchPlugin;
-    private WebDriverWrapper wrappedDriver;
-
-    public CloudWatchPlugin() {
-        LOG.info("Starting CloudWatch plugin.");
-        cloudWatchPlugin = Config.getInstance().getPlugin(Graph.Type.CLOUDWATCH);
-    }
-
-    @Override
-    public void performLogin() {
-        LOG.info("Logging in to AWS console.");
-        WebDriver driver = wrappedDriver.getDriver();
-        try {
-            driver.manage().window().setSize(new Dimension(800, 600));
-            driver.get(cloudWatchPlugin.getLoginUrl());
-            doSleep(500);
-            driver.get("https://console.aws.amazon.com/console/home");
-            verifyTitle("Amazon Web Services Sign-In");
-            driver.findElement(By.id("username")).sendKeys(cloudWatchPlugin.getUsername());
-            driver.findElement(By.id("password")).sendKeys(cloudWatchPlugin.getPassword());
-            driver.findElement(By.id("signin_button")).click();
-
-            // Wait for the login request to complete.
-            for (int i=0; i<10; i++) {
-                if (driver.getCurrentUrl().contains("signin.aws.amazon.com")) {
-                    // Still on the login page.
-                    LOG.debug("Waiting for login process to complete.");
-                    doSleep(500);
-                } else {
-                    break;
-                }
-            }
-
-        } catch (Exception e) {
-            LOG.error("Error logging in to AWS console: ", e);
-            LOG.info("Sleeping 10 seconds and trying again.");
-            doSleep(10000);
+    protected void performSingleUpdate(Graph graph) {
+        boolean executedSuccessfully = getReportScreenshot(graph.getUrl(),
+                graph.getBrowserWidth(),
+                graph.getBrowserHeight(),
+                graph.getImagePath());
+        if (!executedSuccessfully) {
+            // Something went wrong; start over.
             wrappedDriver.restart();
             performLogin();
-            return;
-        }
-    }
-
-    @Override
-    public void performUpdate() {
-        long start = System.currentTimeMillis();
-        LOG.info("Performing update for CloudWatch graphs.");
-
-        // Check for config file update.
-        Config.getInstance().checkForConfigUpdate();
-
-        // Generate reports for all graphs for all dashboards.
-        LOG.info("Updating data from AWS.");
-        Config.getInstance().getDashboards().stream().forEach(
-                dashboard -> dashboard.getGraphs().stream().filter(graph -> graph.getType().equals(Graph.Type.CLOUDWATCH)).forEach(graph -> {
-                            if (!stop) {
-                                boolean executedSuccessfully = getReportScreenshot(graph.getUrl(),
-                                        graph.getBrowserWidth(),
-                                        graph.getBrowserHeight(),
-                                        graph.getImagePath());
-                                if (!executedSuccessfully) {
-                                    // Something went wrong; start over.
-                                    wrappedDriver.restart();
-                                    performLogin();
-                                }
-                            }
-                        }
-                ));
-
-        long end = System.currentTimeMillis();
-        LOG.info("Finished updating CloudWatch graphs. Update took " + ((end-start)/1000) + " seconds.");
-    }
-
-    @Override
-    public void shutdown() {
-        LOG.info("Shutting down.");
-        this.stop = true;
-    }
-
-    private void verifyTitle(String expectedTitle) {
-        long timeout = 3;
-        WebDriver driver = wrappedDriver.getDriver();
-        new WebDriverWait(driver, timeout).until(ExpectedConditions.titleIs(expectedTitle));
-        if (!expectedTitle.equals(driver.getTitle())) {
-            LOG.error("Expected title '{}' does not match actual title '{}'.", expectedTitle, driver.getTitle());
         }
     }
 
@@ -164,7 +71,7 @@ public class CloudWatchPlugin implements WatchboardPlugin {
             LOG.error("Error occurred while fetching report for {} ", filename);
             return false;
         }
-        cloudWatchPlugin.setTsLastUpdated(LocalDateTime.now());
+        plugin.setTsLastUpdated(LocalDateTime.now());
         long end = System.currentTimeMillis();
         LOG.info("Updating " + filename + " took " + (end - start) + " ms.");
         return true;
@@ -179,58 +86,17 @@ public class CloudWatchPlugin implements WatchboardPlugin {
         });
     }
 
-    private boolean waitUntilGraphIsLoaded(String filename) {
-        long loadingStart = System.currentTimeMillis();
-        WebDriver driver = wrappedDriver.getDriver();
-        while (true) {
-            WebDriverUtils.disableTimeouts(driver);
-            boolean isLoading = driver.findElements(By.className("cwdb-loader-container")).size() > 0;
-            WebDriverUtils.enableTimeouts(driver);
-
-            if (!isLoading) {
-                doSleep(250);
-                long loadTimeMS = System.currentTimeMillis() - loadingStart;
-                LOG.debug("Graph {} loaded in {} ms.", filename, loadTimeMS);
-                break;
-            }
-
-            long waitingForMS = System.currentTimeMillis() - loadingStart;
-            LOG.debug("Waiting until {} is loaded (waited for {} ms).", filename, waitingForMS);
-            if ((waitingForMS / 1000) > MAX_GRAPH_LOADING_TIME_IN_SECONDS) {
-                LOG.error("Max waiting time of {} seconds for loading graph expired, giving up.", MAX_GRAPH_LOADING_TIME_IN_SECONDS);
-                return false;
-            }
-            doSleep(100);
-        }
-        return true;
-    }
-
-    private void loadPageAsync(WebDriver driver, String url) {
-        // Trick to speed up page loading.
-        WebDriverUtils.disableTimeouts(driver);
-        try {
-            driver.get(url);
-        } catch (TimeoutException ignored) {
-            // Expected, do nothing.
-        }
-
-        // Back to original timeout.
-        WebDriverUtils.enableTimeouts(driver);
-    }
-
-    @Override
-    public void setDriver(WebDriverWrapper driver) {
-        this.wrappedDriver = driver;
-    }
-
     @Override
     public String getName() {
         return "CloudWatch";
     }
 
     @Override
+    public Graph.Type getGraphType() { return Graph.Type.CLOUDWATCH; }
+
+    @Override
     public int getUpdateInterval() {
-        return cloudWatchPlugin.getUpdateIntervalSeconds();
+        return plugin.getUpdateIntervalSeconds();
     }
 
 }
