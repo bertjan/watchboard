@@ -16,7 +16,6 @@ public class CloudWatchDashboardPlugin extends AbstractCloudWatchPlugin {
     private static final Logger LOG = LoggerFactory.getLogger(CloudWatchDashboardPlugin.class);
 
     protected void performSingleUpdate(Graph graph) {
-        LOG.info("performing single update for graph " + graph.getId());
         boolean executedSuccessfully = getDashboardScreenshot(graph.getUrl(),
                 graph.getBrowserWidth(),
                 graph.getBrowserHeight(),

@@ -11,6 +11,8 @@ public class Plugin {
     private int updateIntervalSeconds;
     private LocalDateTime tsLastUpdated;
 
+    private String browserInstance;
+
     public Graph.Type getType() {
         return type;
     }
@@ -57,6 +59,18 @@ public class Plugin {
 
     public LocalDateTime getTsLastUpdated() {
         return tsLastUpdated;
+    }
+
+    public String getBrowserInstance() {
+        return browserInstance;
+    }
+
+    public void setBrowserInstance(String browserInstance) {
+        this.browserInstance = browserInstance;
+    }
+
+    public String toString() {
+        return type.name();
     }
 
 }

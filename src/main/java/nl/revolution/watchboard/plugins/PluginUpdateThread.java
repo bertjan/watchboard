@@ -2,8 +2,12 @@ package nl.revolution.watchboard.plugins;
 
 import nl.revolution.watchboard.Config;
 import nl.revolution.watchboard.utils.WebDriverWrapper;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static nl.revolution.watchboard.utils.WebDriverUtils.doSleep;
 
@@ -12,46 +16,35 @@ public class PluginUpdateThread extends Thread {
     private static final Logger LOG = LoggerFactory.getLogger(PluginUpdateThread.class);
     private WebDriverWrapper wrappedDriver;
 
-    private WatchboardPlugin watchboardPlugin;
+    private List<WatchboardPlugin> plugins;
     private boolean stop;
     private long currentSessionStartTimestamp;
-    private String pluginName;
+    private String browserInstance;
+    private String pluginNames;
 
-    public PluginUpdateThread(WatchboardPlugin plugin) {
-        this.watchboardPlugin = plugin;
-        this.pluginName = watchboardPlugin.getName();
+    public PluginUpdateThread(String browserInstance, List<WatchboardPlugin> plugins) {
+        this.browserInstance = browserInstance;
+        this.plugins = plugins;
+        this.pluginNames = StringUtils.join(plugins.stream().map(WatchboardPlugin::getName).collect(Collectors.toList()));
     }
 
-
     public void run() {
-        LOG.info("Starting data worker for plugin " + pluginName);
+        LOG.info("Starting data worker for browser instance '" + browserInstance + "' with plugins " + pluginNames + ".");
         currentSessionStartTimestamp = System.currentTimeMillis();
 
         wrappedDriver = new WebDriverWrapper();
         wrappedDriver.start();
 
-        watchboardPlugin.setDriver(wrappedDriver);
-        watchboardPlugin.performLogin();
+        plugins.forEach(plugin -> plugin.setDriver(wrappedDriver));
+        plugins.forEach(WatchboardPlugin::performLogin);
 
-        LOG.info("Starting main update loop for plugin " + pluginName);
+        LOG.info("Starting main update loop for plugins " + pluginNames);
 
         while (!stop) {
             try {
-                long start = System.currentTimeMillis();
-                LOG.info("Performing update for plugin " + pluginName);
-
-                // Perform update.
-                watchboardPlugin.performUpdate();
-
-                long end = System.currentTimeMillis();
-                LOG.info("Done performing update for plugin " + pluginName + ". Update took " + ((end - start) / 1000) + " seconds.");
-
-                // Wait before fetching next update.
-                int backendUpdateIntervalSeconds = watchboardPlugin.getUpdateInterval();
-                LOG.debug("Sleeping {} seconds until next update for plugin " + pluginName + ".", backendUpdateIntervalSeconds);
-                doSleep(1000 * backendUpdateIntervalSeconds);
+                plugins.forEach(this::performSinglePluginUpdate);
             } catch (Exception e) {
-                LOG.error("Caught exception in main update loop for plugin " + pluginName + ": ", e);
+                LOG.error("Caught exception in main update loop for browserInstance '" + browserInstance + "' and plugins " + pluginNames + ": ", e);
                 restartWebDriverAndReLogin();
             }
 
@@ -67,14 +60,31 @@ public class PluginUpdateThread extends Thread {
         }
     }
 
+    private void performSinglePluginUpdate(WatchboardPlugin plugin) {
+        long start = System.currentTimeMillis();
+        String pluginName = plugin.getName();
+        LOG.info("Performing update for plugin " + pluginName);
+
+        // Perform update.
+        plugin.performUpdate();
+
+        long end = System.currentTimeMillis();
+        LOG.info("Done performing update for plugin " + pluginName + ". Update took " + ((end - start) / 1000) + " seconds.");
+
+        // Wait before fetching next update.
+        int backendUpdateIntervalSeconds = plugin.getUpdateInterval();
+        LOG.debug("Sleeping {} seconds until next update for plugin " + pluginName + ".", backendUpdateIntervalSeconds);
+        doSleep(1000 * backendUpdateIntervalSeconds);
+    }
+
     public void doStop() {
         stop = true;
-        watchboardPlugin.shutdown();
+        plugins.forEach(WatchboardPlugin::shutdown);
     }
 
     private void restartWebDriverAndReLogin() {
         wrappedDriver.restart();
-        watchboardPlugin.performLogin();
+        plugins.forEach(WatchboardPlugin::performLogin);
         currentSessionStartTimestamp = System.currentTimeMillis();
     }
 

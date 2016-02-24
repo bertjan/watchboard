@@ -37,6 +37,8 @@ public class Config {
     public static final String AWS_SECRET_KEY_ID = "aws.secretKeyId";
     public static final String AWS_DYNAMODB_TABLE_NAME = "aws.dynamoDB.tableName";
     public static final String DASHBOARD_CONFIG_PERSISTENCE_TYPE = "dashboard.config.persistence.type";
+    public static final String BROWSER_INSTANCES = "browserInstances";
+    public static final String BROWSER_INSTANCE = "browserInstance";
 
     private enum DashboardConfigPersistenceType {
         DISK,
@@ -44,7 +46,7 @@ public class Config {
     }
 
     private static final List<String> REQUIRED_CONFIG_KEYS_GLOBAL = Arrays.asList(HTTP_PORT, WEB_CONTEXTROOT,
-            TEMP_PATH, MAX_SESSION_DURATION_MINUTES, PLUGINS, DASHBOARD_CONFIG_PERSISTENCE_TYPE);
+            TEMP_PATH, MAX_SESSION_DURATION_MINUTES, PLUGINS, DASHBOARD_CONFIG_PERSISTENCE_TYPE, BROWSER_INSTANCES);
 
     public static final String LOGIN_URL = "login.url";
     public static final String USERNAME = "username";
@@ -85,9 +87,9 @@ public class Config {
         readGlobalConfig();
         validateGlobalConfig();
         readDashboardsConfig();
-         validateDashboardsConfig();
-         parsePlugins();
-         parseDashboards();
+        validateDashboardsConfig();
+        parsePlugins();
+        parseDashboards();
         globalConfigFileLastModifiedOnDisk = diskConfigStore.getLastUpdated();
         dashboardConfigLastModified = dashboardConfigStore.getLastUpdated();
 
@@ -192,6 +194,7 @@ public class Config {
             plugin.setUsername(readString(pluginJo, USERNAME));
             plugin.setPassword(readString(pluginJo, PASSWORD));
             plugin.setUpdateIntervalSeconds(readInt(pluginJo, BACKEND_UPDATE_INTERVAL_SECONDS));
+            plugin.setBrowserInstance(readString(pluginJo, BROWSER_INSTANCE));
             plugins.add(plugin);
         });
     }
@@ -290,6 +293,11 @@ public class Config {
 
     public String getDashboardConfigLastModified() {
         return dashboardConfigLastModified;
+    }
+
+    public List<String> getBrowserInstances() {
+        JSONArray browserInstances = (JSONArray) globalConfig.get("browserInstances");
+        return (List<String>)browserInstances.stream().collect(Collectors.toList());
     }
 
 }
