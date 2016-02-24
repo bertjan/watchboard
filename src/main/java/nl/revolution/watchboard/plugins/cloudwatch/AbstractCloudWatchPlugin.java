@@ -7,8 +7,6 @@ import nl.revolution.watchboard.plugins.WatchboardPlugin;
 import nl.revolution.watchboard.utils.WebDriverUtils;
 import nl.revolution.watchboard.utils.WebDriverWrapper;
 import org.openqa.selenium.*;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +38,7 @@ public abstract class AbstractCloudWatchPlugin implements WatchboardPlugin {
             driver.get(plugin.getLoginUrl());
             doSleep(500);
             driver.get("https://console.aws.amazon.com/console/home");
-            verifyTitle("Amazon Web Services Sign-In");
+            WebDriverUtils.verifyTitle(driver, "Amazon Web Services Sign-In", 3);
             driver.findElement(By.id("username")).sendKeys(plugin.getUsername());
             driver.findElement(By.id("password")).sendKeys(plugin.getPassword());
             driver.findElement(By.id("signin_button")).click();
@@ -86,15 +84,6 @@ public abstract class AbstractCloudWatchPlugin implements WatchboardPlugin {
 
         long end = System.currentTimeMillis();
         LOG.info("Finished updating " + getName() + " graphs. Update took " + ((end-start)/1000) + " seconds.");
-    }
-
-    protected void verifyTitle(String expectedTitle) {
-        long timeout = 3;
-        WebDriver driver = wrappedDriver.getDriver();
-        new WebDriverWait(driver, timeout).until(ExpectedConditions.titleIs(expectedTitle));
-        if (!expectedTitle.equals(driver.getTitle())) {
-            LOG.error("Expected title '{}' does not match actual title '{}'.", expectedTitle, driver.getTitle());
-        }
     }
 
     protected void loadPageAsync(WebDriver driver, String url) {
@@ -149,10 +138,7 @@ public abstract class AbstractCloudWatchPlugin implements WatchboardPlugin {
     abstract void performSingleUpdate(Graph graph);
 
     protected int visibleLoadingIcons(WebDriver driver) {
-        WebDriverUtils.disableTimeouts(driver);
-        int size = driver.findElements(By.className("cwdb-loader-container")).size();
-        WebDriverUtils.enableTimeouts(driver);
-        return size;
+        return WebDriverUtils.numberOfElements(driver, By.className("cwdb-loader-container"));
     }
 
 }

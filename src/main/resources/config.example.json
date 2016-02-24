@@ -2,20 +2,40 @@
   "httpPort" : 8090,
   "web.contextroot" : "/",
   "temp.path" : "/tmp",
+  "browserInstances" : [
+    "browser1",
+    "browser2"
+  ],
   "plugins" : [
     {
       "type" : "cloudwatch",
       "username" : "johndoe",
       "password" : "secret",
       "login.url" : "https://my-organization.signin.aws.amazon.com",
-      "backendUpdateIntervalSeconds" : 30
+      "backendUpdateIntervalSeconds" : 30,
+      "browserInstance" : "browser1"
     },
     {
       "type" : "performr",
       "username" : "johndoe",
       "password" : "secret",
       "login.url" : "https://url-to.performr.com",
-      "backendUpdateIntervalSeconds" : 30
+      "backendUpdateIntervalSeconds" : 30,
+      "browserInstance" : "browser1"
+    },
+    {
+      "type" : "cloudwatch-dashboard",
+      "username" : "johndoe",
+      "password" : "secret",
+      "login.url" : "https://my-organization.signin.aws.amazon.com",
+      "backendUpdateIntervalSeconds" : 30,
+      "browserInstance" : "browser2"
+    },
+    {
+      "type" : "kibana",
+      "login.url" : "https://johndoe:secret@kibana.url",
+      "backendUpdateIntervalSeconds" : 5,
+      "browserInstance" : "browser2"
     }
   ],
   "maxSessionDurationMinutes" : 30,
@@ -42,6 +62,20 @@
           "components" : [ "Component 1", "Component 2" ],
           "browserWidth" : 1600,
           "browserHeight" : 600
+        },
+        {
+          "id": "kibana",
+          "type": "kibana",
+          "url": "https://kibana.url/dashboard-uri",
+          "browserWidth": 1600,
+          "browserHeight": 600
+        },
+        {
+          "id": "cloudwatch-dashboard",
+          "type": "cloudwatch-dashboard",
+          "url": "https://eu-west-1.console.aws.amazon.com/cloudwatch/home?region=eu-west-1#dashboards:name=dashboard-name",
+          "browserWidth": 1600,
+          "browserHeight": 600
         }
       ]
     },

@@ -1,10 +1,9 @@
 package nl.revolution.watchboard.utils;
 
 import org.apache.commons.io.FileUtils;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +57,20 @@ public class WebDriverUtils {
         } catch (InterruptedException e) {
             LOG.error("Yawn... sleep interrupted: ", e);
         }
+    }
+
+    public static void verifyTitle(WebDriver driver, String expectedTitle, long timeoutInSeconds) {
+        new WebDriverWait(driver, timeoutInSeconds).until(ExpectedConditions.titleIs(expectedTitle));
+        if (!expectedTitle.equals(driver.getTitle())) {
+            LOG.error("Expected title '{}' does not match actual title '{}'.", expectedTitle, driver.getTitle());
+        }
+    }
+
+    public static int numberOfElements(WebDriver driver, By by) {
+        WebDriverUtils.disableTimeouts(driver);
+        int size = driver.findElements(by).size();
+        WebDriverUtils.enableTimeouts(driver);
+        return size;
     }
 
 }

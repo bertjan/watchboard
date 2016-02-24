@@ -80,10 +80,8 @@ public class PerformrPlugin implements WatchboardPlugin {
                             }
                         }
                 ));
-
         long end = System.currentTimeMillis();
-
-
+        LOG.info("Finished updating " + getName() + " graphs. Update took " + ((end-start)/1000) + " seconds.");
     }
 
 

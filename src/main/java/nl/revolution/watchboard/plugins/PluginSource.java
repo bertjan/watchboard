@@ -5,6 +5,7 @@ import nl.revolution.watchboard.data.Graph;
 import nl.revolution.watchboard.data.Plugin;
 import nl.revolution.watchboard.plugins.cloudwatch.CloudWatchDashboardPlugin;
 import nl.revolution.watchboard.plugins.cloudwatch.CloudWatchPlugin;
+import nl.revolution.watchboard.plugins.kibana.KibanaPlugin;
 import nl.revolution.watchboard.plugins.performr.PerformrPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,12 @@ public class PluginSource {
             if (performrPlugin != null && browserInstance.equals(performrPlugin.getBrowserInstance())) {
                 pluginsForBrowserInstance.add(new PerformrPlugin());
                 LOG.info("Performr plugin configured for browser instance '" + browserInstance + "'.");
+            }
+
+            Plugin kibanaPlugin = Config.getInstance().getPlugin(Graph.Type.KIBANA);
+            if (kibanaPlugin != null && browserInstance.equals(kibanaPlugin.getBrowserInstance())) {
+                pluginsForBrowserInstance.add(new KibanaPlugin());
+                LOG.info("Kibana plugin configured for browser instance '" + browserInstance + "'.");
             }
 
             if (!pluginsForBrowserInstance.isEmpty()) {
