@@ -28,25 +28,33 @@ public class PluginSource {
             List<WatchboardPlugin> pluginsForBrowserInstance = new ArrayList<>();
 
             Plugin cloudWatchPlugin = Config.getInstance().getPlugin(Graph.Type.CLOUDWATCH);
-            if (cloudWatchPlugin != null && browserInstance.equals(cloudWatchPlugin.getBrowserInstance())) {
+            if (cloudWatchPlugin != null
+                    && Config.getInstance().getGraphCountForType(Graph.Type.CLOUDWATCH) > 0
+                    && browserInstance.equals(cloudWatchPlugin.getBrowserInstance())) {
                 pluginsForBrowserInstance.add(new CloudWatchPlugin());
                 LOG.info("CloudWatch plugin configured for browser instance '" + browserInstance + "'.");
             }
 
             Plugin cloudWatchDashboardPlugin = Config.getInstance().getPlugin(Graph.Type.CLOUDWATCH_DASHBOARD);
-            if (cloudWatchDashboardPlugin != null && browserInstance.equals(cloudWatchDashboardPlugin.getBrowserInstance())) {
+            if (cloudWatchDashboardPlugin != null
+                    && Config.getInstance().getGraphCountForType(Graph.Type.CLOUDWATCH_DASHBOARD) > 0
+                    && browserInstance.equals(cloudWatchDashboardPlugin.getBrowserInstance())) {
                 pluginsForBrowserInstance.add(new CloudWatchDashboardPlugin());
                 LOG.info("CloudWatch dashboard plugin configured for browser instance '" + browserInstance + "'.");
             }
 
             Plugin performrPlugin = Config.getInstance().getPlugin(Graph.Type.PERFORMR);
-            if (performrPlugin != null && browserInstance.equals(performrPlugin.getBrowserInstance())) {
+            if (performrPlugin != null
+                    && Config.getInstance().getGraphCountForType(Graph.Type.PERFORMR) > 0
+                    && browserInstance.equals(performrPlugin.getBrowserInstance())) {
                 pluginsForBrowserInstance.add(new PerformrPlugin());
                 LOG.info("Performr plugin configured for browser instance '" + browserInstance + "'.");
             }
 
             Plugin kibanaPlugin = Config.getInstance().getPlugin(Graph.Type.KIBANA);
-            if (kibanaPlugin != null && browserInstance.equals(kibanaPlugin.getBrowserInstance())) {
+            if (kibanaPlugin != null
+                    && Config.getInstance().getGraphCountForType(Graph.Type.KIBANA) > 0
+                    && browserInstance.equals(kibanaPlugin.getBrowserInstance())) {
                 pluginsForBrowserInstance.add(new KibanaPlugin());
                 LOG.info("Kibana plugin configured for browser instance '" + browserInstance + "'.");
             }

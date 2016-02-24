@@ -15,7 +15,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 public class Config {
 
@@ -258,7 +259,7 @@ public class Config {
     }
 
     public List<String> getDashboardIds() {
-        return Config.getInstance().getDashboards().stream().map(dash -> dash.getId()).collect(Collectors.toList());
+        return Config.getInstance().getDashboards().stream().map(dash -> dash.getId()).collect(toList());
     }
 
     public String getContextRoot() {
@@ -297,7 +298,17 @@ public class Config {
 
     public List<String> getBrowserInstances() {
         JSONArray browserInstances = (JSONArray) globalConfig.get("browserInstances");
-        return (List<String>)browserInstances.stream().collect(Collectors.toList());
+        return (List<String>)browserInstances.stream().collect(toList());
+    }
+
+    public long getGraphCountForType(Graph.Type graphType) {
+        return getGrapsForType(graphType).size();
+    }
+
+    public List<Graph> getGrapsForType(Graph.Type graphType) {
+        return dashboards.stream().flatMap(dashboards -> dashboards.getGraphs().stream())
+                .filter(graph -> graph.getType().equals(graphType)).collect(toList());
+
     }
 
 }

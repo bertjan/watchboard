@@ -74,13 +74,12 @@ public abstract class AbstractCloudWatchPlugin implements WatchboardPlugin {
 
         // Generate reports for all graphs for all dashboards.
         LOG.info("Updating data from AWS.");
-        Config.getInstance().getDashboards().stream().forEach(
-                dashboard -> dashboard.getGraphs().stream().filter(graph -> graph.getType().equals(getGraphType())).forEach(graph -> {
-                            if (!stop) {
-                                performSingleUpdate(graph);
-                            }
-                        }
-                ));
+        Config.getInstance().getGrapsForType(getGraphType()).stream().forEach(graph -> {
+                if (!stop) {
+                    performSingleUpdate(graph);
+                }
+            }
+        );
 
         long end = System.currentTimeMillis();
         LOG.info("Finished updating " + getName() + " graphs. Update took " + ((end-start)/1000) + " seconds.");
