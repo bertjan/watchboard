@@ -72,6 +72,8 @@ public class KibanaPlugin implements WatchboardPlugin {
             LOG.debug("Starting update of {}.", graph.getImagePath());
             WebDriver driver = wrappedDriver.getDriver();
             driver.manage().window().setSize(new Dimension(2000, 1000));
+            driver.get("http://localhost:" + Config.getInstance().getInt(Config.HTTP_PORT));
+
             driver.get(graph.getUrl());
 
             // Wait until dashboard panels are rendered.
@@ -90,12 +92,29 @@ public class KibanaPlugin implements WatchboardPlugin {
                 return;
             }
 
-            // Find svg's in the first visualization.
-            int svgs = driver.findElement(By.tagName("visualize")).findElements(By.tagName("svg")).size();
-            if (svgs == 0) {
-                LOG.info("No Kibana visualizations found; skipping screenshot.");
-                return;
+            // Wait until a visualization chart is present.
+            size = 0;
+            for (int i=0; i<20; i++) {
+                size = WebDriverUtils.numberOfElements(driver, By.className("visualize-chart"));
+                LOG.info("visualize-chart size: " + size);
+                if (size > 0) {
+                    break;
+                }
+                doSleep(500);
             }
+
+
+            if (WebDriverUtils.numberOfElements(driver, By.className("vis-wrapper")) > 0) {
+                LOG.info("vis-wrapper exists");
+                // Find svg's in the first visualization.
+//                int svgs = driver.findElement(By.tagName("visualize")).findElements(By.tagName("svg")).size();
+//                if (svgs == 0) {
+//                    LOG.info("No Kibana visualizations found; skipping screenshot.");
+//                    return;
+//                }
+
+            }
+
 
             // Wait one more second to allow for rendering to complete ...
             doSleep(1000);
