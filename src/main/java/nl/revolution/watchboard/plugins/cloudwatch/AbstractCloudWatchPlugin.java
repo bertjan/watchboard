@@ -114,10 +114,7 @@ public abstract class AbstractCloudWatchPlugin implements WatchboardPlugin {
         long loadingStart = System.currentTimeMillis();
         WebDriver driver = wrappedDriver.getDriver();
         while (true) {
-            WebDriverUtils.disableTimeouts(driver);
-            boolean isLoading = driver.findElements(By.className("cwdb-loader-container")).size() > 0;
-            WebDriverUtils.enableTimeouts(driver);
-
+            boolean isLoading = visibleLoadingIcons(driver) > 0;
             if (!isLoading) {
                 doSleep(250);
                 long loadTimeMS = System.currentTimeMillis() - loadingStart;
@@ -150,5 +147,12 @@ public abstract class AbstractCloudWatchPlugin implements WatchboardPlugin {
 
     abstract Graph.Type getGraphType();
     abstract void performSingleUpdate(Graph graph);
+
+    protected int visibleLoadingIcons(WebDriver driver) {
+        WebDriverUtils.disableTimeouts(driver);
+        int size = driver.findElements(By.className("cwdb-loader-container")).size();
+        WebDriverUtils.enableTimeouts(driver);
+        return size;
+    }
 
 }
