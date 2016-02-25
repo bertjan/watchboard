@@ -281,7 +281,7 @@ public class APIHandler extends AbstractHandler {
             if (pluginLastUpdated != null) {
                 secondsSincePreviousUpdate = pluginLastUpdated.until(LocalDateTime.now(), ChronoUnit.SECONDS);
                 // if previous update was less the update interval plus 1 minute, all is well.
-                if (secondsSincePreviousUpdate < (plugin.getUpdateIntervalSeconds() + 60)) {
+                if (secondsSincePreviousUpdate < 180) {
                     updateIntervalStatus = "OK";
                 } else {
                     updateIntervalStatus = "ERROR";
