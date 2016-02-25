@@ -1,7 +1,7 @@
 package nl.revolution.watchboard.plugins.cloudwatch;
 
-import nl.revolution.watchboard.Config;
 import nl.revolution.watchboard.data.Graph;
+import nl.revolution.watchboard.utils.WebDriverUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.*;
 import org.slf4j.Logger;
@@ -38,7 +38,7 @@ public class CloudWatchDashboardPlugin extends AbstractCloudWatchPlugin {
             WebDriver driver = wrappedDriver.getDriver();
             LOG.debug("Starting update of {}", filename);
             driver.manage().window().setSize(new Dimension(width, height));
-            loadPageAsync(driver, "http://localhost:" + Config.getInstance().getInt(Config.HTTP_PORT));
+            WebDriverUtils.fetchDummyPage(driver);
             loadPageAsync(driver, reportUrl);
 
             // Set time zone.

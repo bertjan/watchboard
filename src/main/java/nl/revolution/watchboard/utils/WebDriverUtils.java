@@ -1,5 +1,6 @@
 package nl.revolution.watchboard.utils;
 
+import nl.revolution.watchboard.Config;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -71,6 +72,10 @@ public class WebDriverUtils {
         int size = driver.findElements(by).size();
         WebDriverUtils.enableTimeouts(driver);
         return size;
+    }
+
+    public static void fetchDummyPage(WebDriver driver) {
+        driver.get("http://localhost:" + Config.getInstance().getInt(Config.HTTP_PORT) + Config.getInstance().getContextRoot());
     }
 
 }

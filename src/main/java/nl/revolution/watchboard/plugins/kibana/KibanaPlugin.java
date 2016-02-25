@@ -72,8 +72,7 @@ public class KibanaPlugin implements WatchboardPlugin {
             LOG.debug("Starting update of {}.", graph.getImagePath());
             WebDriver driver = wrappedDriver.getDriver();
             driver.manage().window().setSize(new Dimension(2000, 1000));
-            driver.get("http://localhost:" + Config.getInstance().getInt(Config.HTTP_PORT));
-
+            WebDriverUtils.fetchDummyPage(driver);
             driver.get(graph.getUrl());
 
             // Wait until dashboard panels are rendered.

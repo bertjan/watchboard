@@ -78,7 +78,7 @@ public class SonarPlugin implements WatchboardPlugin {
             WebDriver driver = wrappedDriver.getDriver();
             driver.manage().window().setSize(new Dimension(2000, 1000));
 
-            driver.get("http://localhost:" + Config.getInstance().getInt(Config.HTTP_PORT));
+            WebDriverUtils.fetchDummyPage(driver);
             driver.get(graph.getUrl());
 
             // Wait for the screen to load.
