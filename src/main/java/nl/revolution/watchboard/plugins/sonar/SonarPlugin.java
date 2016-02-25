@@ -98,6 +98,9 @@ public class SonarPlugin implements WatchboardPlugin {
                 }
             }
 
+            // Wait for the screen to load.
+            doSleep(500);
+
             getSonarScreenshot(graph.getBrowserWidth(), graph.getBrowserHeight(), graph.getImagePath());
         } catch (Exception e) {
             LOG.error("Exception while performing Sonar update: ", e);

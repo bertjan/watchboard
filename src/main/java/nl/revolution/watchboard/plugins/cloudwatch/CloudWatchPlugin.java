@@ -22,8 +22,7 @@ public class CloudWatchPlugin extends AbstractCloudWatchPlugin {
                 graph.getImagePath());
         if (!executedSuccessfully) {
             // Something went wrong; start over.
-            wrappedDriver.restart();
-            performLogin();
+            throw new RuntimeException("CloudWatchPlugin performSingleUpdate failed.");
         }
     }
 

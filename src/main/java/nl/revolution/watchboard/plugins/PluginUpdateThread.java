@@ -9,8 +9,6 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static nl.revolution.watchboard.utils.WebDriverUtils.doSleep;
-
 public class PluginUpdateThread extends Thread {
 
     private static final Logger LOG = LoggerFactory.getLogger(PluginUpdateThread.class);
@@ -41,12 +39,12 @@ public class PluginUpdateThread extends Thread {
         LOG.info("Starting main update loop for plugins " + pluginNames);
 
         while (!stop) {
-            try {
-                plugins.forEach(this::performSinglePluginUpdate);
-            } catch (Exception e) {
-                LOG.error("Caught exception in main update loop for browserInstance '" + browserInstance + "' and plugins " + pluginNames + ": ", e);
-                restartWebDriverAndReLogin();
-            }
+            plugins.forEach(plugin -> {
+                if (!performSinglePluginUpdate(plugin)) {
+                    LOG.error("Update run for plugin '" + plugin.getName() + "' failed, restarting browserInstance '" + browserInstance + "' for plugins " + pluginNames + ": ");
+                    restartWebDriverAndReLogin();
+                }
+            });
 
             // Re-start webdriver and re-login every now and than to prevent session max duration issues.
             long currentSessionTimeInMinutes = ((System.currentTimeMillis() - currentSessionStartTimestamp) / 1000 / 60);
@@ -60,21 +58,27 @@ public class PluginUpdateThread extends Thread {
         }
     }
 
-    private void performSinglePluginUpdate(WatchboardPlugin plugin) {
+    private boolean performSinglePluginUpdate(WatchboardPlugin plugin) {
         long start = System.currentTimeMillis();
         String pluginName = plugin.getName();
         LOG.info("Performing update for plugin " + pluginName);
 
         // Perform update.
-        plugin.performUpdate();
+        try {
+            plugin.performUpdate();
+        } catch (Exception e) {
+            LOG.error("Error while performing plugin update for plugin '" + plugin.getName() + "':", e);
+            return false;
+        }
 
         long end = System.currentTimeMillis();
         LOG.info("Done performing update for plugin " + pluginName + ". Update took " + ((end - start) / 1000) + " seconds.");
 
         // Wait before fetching next update.
-        int backendUpdateIntervalSeconds = plugin.getUpdateInterval();
-        LOG.debug("Sleeping {} seconds until next update for plugin " + pluginName + ".", backendUpdateIntervalSeconds);
-        doSleep(1000 * backendUpdateIntervalSeconds);
+//        int backendUpdateIntervalSeconds = plugin.getUpdateInterval();
+//        LOG.debug("Sleeping {} seconds until next update for plugin " + pluginName + ".", backendUpdateIntervalSeconds);
+//        doSleep(1000 * backendUpdateIntervalSeconds);
+        return true;
     }
 
     public void doStop() {

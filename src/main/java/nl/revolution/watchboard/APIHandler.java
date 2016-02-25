@@ -258,7 +258,7 @@ public class APIHandler extends AbstractHandler {
             createGETConfigResponse(baseRequest, response, "Error while saving dashboard configuration.");
             return;
         }
-        String dashboardConfig = ((JSONObject)postDataJo.get("config")).toJSONString();
+        String dashboardConfig = ((JSONObject) postDataJo.get("config")).toJSONString();
         String updatedAt = String.valueOf(postDataJo.get("updatedAt"));
         Config.getInstance().updateDashboardsConfig(dashboardConfig, updatedAt);
 
