@@ -1,12 +1,17 @@
 package nl.revolution.watchboard.plugins.cloudwatch;
 
+import nl.revolution.watchboard.Config;
 import nl.revolution.watchboard.data.Graph;
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static nl.revolution.watchboard.utils.WebDriverUtils.doSleep;
 import static nl.revolution.watchboard.utils.WebDriverUtils.takeScreenShot;
@@ -22,6 +27,7 @@ public class CloudWatchDashboardPlugin extends AbstractCloudWatchPlugin {
         boolean executedSuccessfully = getDashboardScreenshot(graph.getUrl(),
                 graph.getBrowserWidth(),
                 graph.getBrowserHeight(),
+                graph.getTimeRange(),
                 graph.getImagePath());
         if (!executedSuccessfully) {
             // Something went wrong; start over.
@@ -30,19 +36,52 @@ public class CloudWatchDashboardPlugin extends AbstractCloudWatchPlugin {
         }
     }
 
-    private boolean getDashboardScreenshot(String reportUrl, int width, int height, String filename) {
+    private boolean getDashboardScreenshot(String reportUrl, int width, int height, int timeRange, String filename) {
         long start = System.currentTimeMillis();
         try {
             WebDriver driver = wrappedDriver.getDriver();
             LOG.debug("Starting update of {}", filename);
             driver.manage().window().setSize(new Dimension(width, height));
-
+            loadPageAsync(driver, "http://localhost:" + Config.getInstance().getInt(Config.HTTP_PORT));
             loadPageAsync(driver, reportUrl);
+
+            // Set time zone.
+            boolean timezoneSettingSucceeded = false;
+            WebElement timeRangeDropdown =  driver.findElement(By.className("cwdb-time-range-dropdown"));
+            timeRangeDropdown.findElement(By.tagName("button")).click();
+
+            List<WebElement> spans = timeRangeDropdown.findElements(By.tagName("span")).stream().filter(element -> StringUtils.isNotBlank(element.getText())).collect(Collectors.toList());
+            if (!spans.isEmpty()) {
+                WebElement timeZoneElement = spans.get(spans.size()-1);
+                timeZoneElement.click();
+                Optional<WebElement> localTimeZoneElement = timeRangeDropdown.findElements(By.tagName("span")).stream().filter(elem -> "Local".equals(elem.getText())).findFirst();
+                if (localTimeZoneElement.isPresent()) {
+                    localTimeZoneElement.get().click();
+                    timezoneSettingSucceeded = true;
+                }
+            }
+
+            if (!timezoneSettingSucceeded) {
+                LOG.error("Setting time zone failed for graph " + filename);
+            }
 
             // Wait until dashboard is loaded.
             boolean graphLoaded = waitUntilGraphIsLoaded(filename);
             if (!graphLoaded) {
                 return false;
+            }
+
+            Optional<WebElement> timeRangeInputField = driver.findElement(By.className("cwdb-time-range-controls")).findElements(By.tagName("input")).stream().filter(input -> "number".equals(input.getAttribute("type"))).findFirst();
+            if (timeRangeInputField.isPresent()) {
+                timeRangeInputField.get().clear();
+                timeRangeInputField.get().sendKeys(String.valueOf(timeRange));
+                timeRangeInputField.get().sendKeys(Keys.RETURN);
+            }
+
+            // Click refresh button.
+            Optional<WebElement> refreshButton = driver.findElements(By.tagName("button")).stream().filter(button -> "refresh".equals(button.getAttribute("data-role"))).findFirst();
+            if (refreshButton.isPresent()) {
+                refreshButton.get().click();
             }
 
             // Next step: wait for the individual graphs to be loaded.

@@ -47,6 +47,7 @@ public class Graph {
     private String imagePath;
     private int browserWidth;
     private int browserHeight;
+    private int timeRange;
     private List<String> components;
 
     public JSONObject toJSON(String contextRoot) {
@@ -123,6 +124,14 @@ public class Graph {
 
     public void setComponents(List<String> components) {
         this.components = components;
+    }
+
+    public int getTimeRange() {
+        return timeRange;
+    }
+
+    public void setTimeRange(int timeRange) {
+        this.timeRange = timeRange;
     }
 
 }

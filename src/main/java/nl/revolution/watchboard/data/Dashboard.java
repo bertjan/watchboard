@@ -18,6 +18,7 @@ public class Dashboard {
     public static final String TYPE = "type";
     public static final String BROWSER_WIDTH = "browserWidth";
     public static final String BROWSER_HEIGHT = "browserHeight";
+    public static final String TIME_RANGE = "timeRange";
     public static final String URL = "url";
     public static final String COMPONENTS = "components";
     public static final String EXTENSION_PNG = ".png";
@@ -135,6 +136,7 @@ public class Dashboard {
 
                 graph.setBrowserWidth(Config.readInt(graphObj, BROWSER_WIDTH));
                 graph.setBrowserHeight(Config.readInt(graphObj, BROWSER_HEIGHT));
+                graph.setTimeRange(Config.readInt(graphObj, TIME_RANGE));
                 graph.setImagePath(tempPath + "/" + Config.readString(graphObj, Config.ID).toString() + EXTENSION_PNG);
 
                 Object componentsObj = graphObj.get(COMPONENTS);
