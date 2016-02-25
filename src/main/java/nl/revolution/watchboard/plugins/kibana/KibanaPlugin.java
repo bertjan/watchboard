@@ -38,7 +38,7 @@ public class KibanaPlugin implements WatchboardPlugin {
             driver.get(plugin.getLoginUrl());
             WebDriverUtils.verifyTitle(driver, "Kibana 4", 5);
         } catch (Exception e) {
-            LOG.error("Error while logging in to Performr: ", e);
+            LOG.error("Error while logging in to Kibana: ", e);
         }
 
         LOG.info("Logged in to Kibana.");
@@ -153,7 +153,7 @@ public class KibanaPlugin implements WatchboardPlugin {
 
     @Override
     public String getName() {
-        return "Performr";
+        return "Kibana";
     }
 
     @Override

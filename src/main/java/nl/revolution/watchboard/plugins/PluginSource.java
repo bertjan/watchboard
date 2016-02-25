@@ -7,6 +7,7 @@ import nl.revolution.watchboard.plugins.cloudwatch.CloudWatchDashboardPlugin;
 import nl.revolution.watchboard.plugins.cloudwatch.CloudWatchPlugin;
 import nl.revolution.watchboard.plugins.kibana.KibanaPlugin;
 import nl.revolution.watchboard.plugins.performr.PerformrPlugin;
+import nl.revolution.watchboard.plugins.sonar.SonarPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +58,14 @@ public class PluginSource {
                     && browserInstance.equals(kibanaPlugin.getBrowserInstance())) {
                 pluginsForBrowserInstance.add(new KibanaPlugin());
                 LOG.info("Kibana plugin configured for browser instance '" + browserInstance + "'.");
+            }
+
+            Plugin sonarPlugin = Config.getInstance().getPlugin(Graph.Type.SONAR);
+            if (sonarPlugin != null
+                    && Config.getInstance().getGraphCountForType(Graph.Type.SONAR) > 0
+                    && browserInstance.equals(sonarPlugin.getBrowserInstance())) {
+                pluginsForBrowserInstance.add(new SonarPlugin());
+                LOG.info("Sonar plugin configured for browser instance '" + browserInstance + "'.");
             }
 
             if (!pluginsForBrowserInstance.isEmpty()) {

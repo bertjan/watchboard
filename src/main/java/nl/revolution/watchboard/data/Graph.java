@@ -19,7 +19,7 @@ public class Graph {
     public static final String COMPONENTS = "components";
 
     public enum Type {
-        CLOUDWATCH, PERFORMR, DISK, CLOUDWATCH_DASHBOARD, KIBANA;
+        CLOUDWATCH, PERFORMR, DISK, CLOUDWATCH_DASHBOARD, KIBANA, SONAR;
 
         public static Type fromString(String typeStr) {
             if (StringUtils.isEmpty(typeStr)) {
@@ -36,8 +36,10 @@ public class Graph {
                 return CLOUDWATCH_DASHBOARD;
             } else if (KIBANA.toString().equals(typeStr)) {
                 return KIBANA;
+            } else if (SONAR.toString().equals(typeStr)) {
+                return SONAR;
             }
-            return null;
+        return null;
         }
     }
 

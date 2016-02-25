@@ -36,6 +36,14 @@
       "login.url" : "https://johndoe:secret@kibana.url",
       "backendUpdateIntervalSeconds" : 5,
       "browserInstance" : "browser2"
+    },
+    {
+      "type" : "sonar",
+      "username" : "johndoe",
+      "password" : "secret",
+      "login.url" : "https://url-to-sonar",
+      "backendUpdateIntervalSeconds" : 5,
+      "browserInstance" : "browser2"
     }
   ],
   "maxSessionDurationMinutes" : 30,
@@ -74,6 +82,13 @@
           "id": "cloudwatch-dashboard",
           "type": "cloudwatch-dashboard",
           "url": "https://eu-west-1.console.aws.amazon.com/cloudwatch/home?region=eu-west-1#dashboards:name=dashboard-name",
+          "browserWidth": 1600,
+          "browserHeight": 600
+        },
+        {
+          "id": "sonar",
+          "type": "sonar",
+          "url": "https://url-to-sonar-project-dashboard",
           "browserWidth": 1600,
           "browserHeight": 600
         }
