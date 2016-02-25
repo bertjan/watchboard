@@ -65,18 +65,21 @@ public class Config {
     private String dashboardConfigLastModified;
 
     public static Config getInstance() {
-        if (instance == null) {
-            synchronized(Config.class) {
-                if (instance == null) {
-                    try {
-                        instance = new Config();
-                    } catch (IOException | ParseException e) {
-                        LOG.error("Initializing config failed: ", e);
-                    }
+        if (instance != null) {
+            return instance;
+        }
+
+        synchronized(Config.class) {
+            if (instance == null) {
+                try {
+                    instance = new Config();
+                } catch (IOException | ParseException e) {
+                    LOG.error("Initializing config failed: ", e);
                 }
             }
+            return instance;
         }
-        return instance;
+
     }
 
     public Config() throws IOException, ParseException {
