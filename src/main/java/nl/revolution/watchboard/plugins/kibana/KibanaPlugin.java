@@ -103,17 +103,17 @@ public class KibanaPlugin implements WatchboardPlugin {
             }
 
 
-            if (WebDriverUtils.numberOfElements(driver, By.className("vis-wrapper")) > 0) {
-                LOG.info("vis-wrapper exists");
-                // TODO: is dit nodig?
-                // Find svg's in the first visualization.
-//                int svgs = driver.findElement(By.tagName("visualize")).findElements(By.tagName("svg")).size();
-//                if (svgs == 0) {
-//                    LOG.info("No Kibana visualizations found; skipping screenshot.");
-//                    return;
-//                }
-
-            }
+//            if (WebDriverUtils.numberOfElements(driver, By.className("vis-wrapper")) > 0) {
+//                LOG.info("vis-wrapper exists");
+//                // TODO: is dit nodig?
+//                // Find svg's in the first visualization.
+////                int svgs = driver.findElement(By.tagName("visualize")).findElements(By.tagName("svg")).size();
+////                if (svgs == 0) {
+////                    LOG.info("No Kibana visualizations found; skipping screenshot.");
+////                    return;
+////                }
+//
+//            }
 
 
             // Wait one more second to allow for rendering to complete ...
