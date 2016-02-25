@@ -285,6 +285,7 @@ public class APIHandler extends AbstractHandler {
                     updateIntervalStatus = "OK";
                 } else {
                     updateIntervalStatus = "ERROR";
+                    LOG.error("Reporting healthcheck ERROR: secondsSincePreviousUpdate=" + secondsSincePreviousUpdate + " for plugin " + plugin.getType());
                 }
             }
 
