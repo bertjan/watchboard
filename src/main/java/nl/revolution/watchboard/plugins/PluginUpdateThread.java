@@ -52,7 +52,7 @@ public class PluginUpdateThread extends Thread {
             long currentSessionTimeInMinutes = ((System.currentTimeMillis() - currentSessionStartTimestamp) / 1000 / 60);
             LOG.info("currentSessionTimeInMinutes: " + currentSessionTimeInMinutes);
             if (currentSessionTimeInMinutes > Config.getInstance().getInt(Config.MAX_SESSION_DURATION_MINUTES)) {
-                LOG.info("Max session duration exceeded, restarting browser.");
+                LOG.info("Max session duration exceeded, restarting browser instance '" + browserInstance + "'.");
 
                 // Restart; this also resets the session duration timer.
                 restartWebDriverAndReLogin();

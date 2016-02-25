@@ -80,6 +80,9 @@ public class SonarPlugin implements WatchboardPlugin {
 
             driver.get(graph.getUrl());
 
+            // Wait for the screen to load.
+            doSleep(500);
+
             JavascriptExecutor executor = (JavascriptExecutor)driver;
 
             // Give tiles list some padding at the top.
@@ -94,9 +97,6 @@ public class SonarPlugin implements WatchboardPlugin {
                     executor.executeScript("arguments[0].style.display='none';", tile);
                 }
             }
-
-            // Wait for the screen to load.
-            doSleep(500);
 
             getSonarScreenshot(graph.getBrowserWidth(), graph.getBrowserHeight(), graph.getImagePath());
         } catch (Exception e) {
