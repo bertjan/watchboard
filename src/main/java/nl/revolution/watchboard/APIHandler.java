@@ -276,7 +276,6 @@ public class APIHandler extends AbstractHandler {
         List<Plugin> plugins = Config.getInstance().getPlugins();
         for (Plugin plugin : plugins) {
             LocalDateTime pluginLastUpdated = plugin.getTsLastUpdated();
-            LOG.info("plugin " + plugin.getType() + " lastUpdated: " + pluginLastUpdated);
             Long secondsSincePreviousUpdate = null;
             String updateIntervalStatus = "NO DATA";
             if (pluginLastUpdated != null) {
