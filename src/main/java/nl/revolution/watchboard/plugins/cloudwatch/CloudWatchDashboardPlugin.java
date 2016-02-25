@@ -46,8 +46,9 @@ public class CloudWatchDashboardPlugin extends AbstractCloudWatchPlugin {
             }
 
             // Next step: wait for the individual graphs to be loaded.
-            // First, wait up to a second for 'loading' indicators to appear.
-            for (int i=0; i<10; i++) {
+            // First, wait up to two seconds for 'loading' indicators to appear.
+            doSleep(250);
+            for (int i=0; i<20; i++) {
                 int loading = visibleLoadingIcons(driver);
                 if (loading > 0) {
                     // Loading icon found; stop waiting.

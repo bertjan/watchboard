@@ -59,7 +59,6 @@ html, body, div, span {
     left: 7px;
     top: 1px;
     z-index: 10;
-    /*padding-right: -2px;*/
 }
 
 #logo a {
@@ -77,23 +76,14 @@ html, body, div, span {
     padding-left: 10px;
 }
 
-#images ul {
-    margin: 3px 0 0 3px;
-    padding: 0px;
-}
-.images-draggable { list-style-type: none; margin: 0; margin-top: 5px; padding: 0  }
-#images li { float: left; text-align: left; margin-right: 8px; margin-top: 0px; overflow: auto; }
-
-
-
-.imageGrid {
+#images {
     /* Prevent vertical gaps */
     width: 100%;
     -webkit-column-gap:   0px;
     -moz-column-gap:      0px;
     column-gap:           0px;
 }
-.imageGrid img {
+#images img {
     /* Just in case there are inline attributes */
     width: 99% !important;
     height: auto !important;

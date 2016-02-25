@@ -2,8 +2,6 @@
 <head>
     <script type="text/javascript" src="//code.jquery.com/jquery-2.1.4.min.js"></script>
     <script type="text/javascript" src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-    <script type="text/javascript" src="jquery.debouncedresize.js"></script>
-
     <link rel="stylesheet" href="watchboard.css" type="text/css">
     <script type="text/javascript" src="watchboard.js"></script>
 </head>
@@ -11,7 +9,7 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        startGraphUpdateLoop("v1");
+        startGraphUpdateLoop();
     });
 </script>
 
@@ -33,7 +31,7 @@
     </div>
 </div>
 
-<div id="images" class="images-draggable"></div>
+<div id="images"></div>
 
 </body>
 </html>

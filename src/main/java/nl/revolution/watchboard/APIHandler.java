@@ -89,11 +89,7 @@ public class APIHandler extends AbstractHandler {
         // Serve dashboard.html for all configured dashboards.
         for (String dashboardId : Config.getInstance().getDashboardIds()) {
             if (requestURI.startsWith(Config.getInstance().getContextRoot() + dashboardId)) {
-                getResourceHandlerForDashboard(dashboardId + "-v1", dashboardId, "dashboard.html").handle(target, baseRequest, request, response);
-                baseRequest.setHandled(true);
-                return;
-            } else if (requestURI.startsWith(Config.getInstance().getContextRoot() + "v2-" + dashboardId)) {
-                getResourceHandlerForDashboard(dashboardId + "-v2", "v2-" + dashboardId, "dashboard-v2.html").handle(target, baseRequest, request, response);
+                getResourceHandlerForDashboard(dashboardId, dashboardId, "dashboard.html").handle(target, baseRequest, request, response);
                 baseRequest.setHandled(true);
                 return;
             }

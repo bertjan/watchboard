@@ -12,7 +12,7 @@ public class WebServer {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebServer.class);
     public static final String STATIC_RESOURCE_PATH = WebServer.class.getClassLoader().getResource("web").toExternalForm();
-    // private static final String STATIC_RESOURCE_PATH = "/Users/bertjan/IdeaProjects/sandbox/watchboard/src/main/resources/web";
+    // public static final String STATIC_RESOURCE_PATH = "/Users/bertjan/IdeaProjects/sandbox/watchboard/src/main/resources/web";
 
     public Server createServer() {
         int httpPort = Config.getInstance().getInt(Config.HTTP_PORT);
