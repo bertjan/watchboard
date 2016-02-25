@@ -100,7 +100,7 @@ public class SonarPlugin implements WatchboardPlugin {
 
             getSonarScreenshot(graph.getBrowserWidth(), graph.getBrowserHeight(), graph.getImagePath());
         } catch (Exception e) {
-            LOG.error("Exception while performing Kibana update: ", e);
+            LOG.error("Exception while performing Sonar update: ", e);
         }
 
         plugin.setTsLastUpdated(LocalDateTime.now());
