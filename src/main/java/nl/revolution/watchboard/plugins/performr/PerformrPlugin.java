@@ -86,59 +86,55 @@ public class PerformrPlugin implements WatchboardPlugin {
 
 
     private void performSingleUpdate(Graph graph, boolean isRetry) {
-        try {
-            LOG.debug("Starting update of {}.", graph.getImagePath());
-            WebDriver driver = wrappedDriver.getDriver();
-            driver.manage().window().setSize(new Dimension(2000, 1000));
-            driver.get(performrPlugin.getLoginUrl());
+        LOG.debug("Starting update of {}.", graph.getImagePath());
+        WebDriver driver = wrappedDriver.getDriver();
+        driver.manage().window().setSize(new Dimension(2000, 1000));
+        driver.get(performrPlugin.getLoginUrl());
 
-            long loadingStart = System.currentTimeMillis();
-            boolean found = false;
-            while (!found) {
-                List<WebElement> spans = driver.findElements(By.tagName("span"));
-                for (WebElement span : spans) {
-                    if ("Selecteer component".equals(span.getText())) {
-                        span.click();
-                        found = true;
-                    }
+        long loadingStart = System.currentTimeMillis();
+        boolean found = false;
+        while (!found) {
+            List<WebElement> spans = driver.findElements(By.tagName("span"));
+            for (WebElement span : spans) {
+                if ("Selecteer component".equals(span.getText())) {
+                    span.click();
+                    found = true;
                 }
-                // LOG.debug("Did not find Performr component selection (yet), waiting.");
-                doSleep(1000);
-                long waitingForMS = System.currentTimeMillis() - loadingStart;
-                if ((waitingForMS / 1000) > 10) {
-                    // Waited for over 10 seconds; break.
-                    LOG.error("Timed out waiting for Performr component selection to appear.");
+            }
+            // LOG.debug("Did not find Performr component selection (yet), waiting.");
+            doSleep(1000);
+            long waitingForMS = System.currentTimeMillis() - loadingStart;
+            if ((waitingForMS / 1000) > 10) {
+                // Waited for over 10 seconds; break.
+                LOG.error("Timed out waiting for Performr component selection to appear.");
 
-                    // Re-login to fix issue.
-                    performLogin();
-                    if (!isRetry) {
-                        // if this isn't a retry already, try once again.
-                        performSingleUpdate(graph, true);
-                    }
-                    return;
+                // Re-login to fix issue.
+                performLogin();
+                if (!isRetry) {
+                    // if this isn't a retry already, try once again.
+                    performSingleUpdate(graph, true);
                 }
-
+                return;
             }
 
-            // Disable all components.
-            getComponentCheckbox("Alle").click();
-            doSleep(500);
-
-            // Select project components.
-            graph.getComponents().stream().forEach(component -> {
-                WebElement componentCheckbox = getComponentCheckbox(component);
-                if (componentCheckbox != null) {
-                    componentCheckbox.click();
-                    doSleep(500);
-                } else {
-                    LOG.error("Component '" + component + "' not found!");
-                }
-            });
-
-            getPerformrScreenshot(graph.getBrowserWidth(), graph.getBrowserHeight(), graph.getImagePath());
-        } catch (Exception e) {
-            LOG.error("Exception while performing Performr update: ", e);
         }
+
+        // Disable all components.
+        getComponentCheckbox("Alle").click();
+        doSleep(500);
+
+        // Select project components.
+        graph.getComponents().stream().forEach(component -> {
+            WebElement componentCheckbox = getComponentCheckbox(component);
+            if (componentCheckbox != null) {
+                componentCheckbox.click();
+                doSleep(500);
+            } else {
+                LOG.error("Component '" + component + "' not found!");
+            }
+        });
+
+        getPerformrScreenshot(graph.getBrowserWidth(), graph.getBrowserHeight(), graph.getImagePath());
 
         performrPlugin.setTsLastUpdated(LocalDateTime.now());
     }

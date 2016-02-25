@@ -73,39 +73,35 @@ public class SonarPlugin implements WatchboardPlugin {
 
 
     private void performSingleUpdate(Graph graph) {
-        try {
-            LOG.debug("Starting update of {}.", graph.getImagePath());
-            WebDriver driver = wrappedDriver.getDriver();
-            driver.manage().window().setSize(new Dimension(2000, 1000));
+        LOG.debug("Starting update of {}.", graph.getImagePath());
+        WebDriver driver = wrappedDriver.getDriver();
+        driver.manage().window().setSize(new Dimension(2000, 1000));
 
-            WebDriverUtils.fetchDummyPage(driver);
-            driver.get(graph.getUrl());
+        WebDriverUtils.fetchDummyPage(driver);
+        driver.get(graph.getUrl());
 
-            // Wait for the screen to load.
-            doSleep(500);
+        // Wait for the screen to load.
+        doSleep(500);
 
-            JavascriptExecutor executor = (JavascriptExecutor)driver;
+        JavascriptExecutor executor = (JavascriptExecutor)driver;
 
-            // Give tiles list some padding at the top.
-            WebElement tilesList = driver.findElement(By.className("overview-domains-list"));
-            executor.executeScript("arguments[0].style.padding='5px 0 0 0';", tilesList);
+        // Give tiles list some padding at the top.
+        WebElement tilesList = driver.findElement(By.className("overview-domains-list"));
+        executor.executeScript("arguments[0].style.padding='5px 0 0 0';", tilesList);
 
-            // Hide all tiles except the top 2.
-            List<WebElement> sonarTiles = tilesList.findElements(By.className("overview-card"));
-            for (int i=0; i<sonarTiles.size(); i++) {
-                if (i>1) {
-                    WebElement tile = sonarTiles.get(i);
-                    executor.executeScript("arguments[0].style.display='none';", tile);
-                }
+        // Hide all tiles except the top 2.
+        List<WebElement> sonarTiles = tilesList.findElements(By.className("overview-card"));
+        for (int i=0; i<sonarTiles.size(); i++) {
+            if (i>1) {
+                WebElement tile = sonarTiles.get(i);
+                executor.executeScript("arguments[0].style.display='none';", tile);
             }
-
-            // Wait for the screen to load.
-            doSleep(500);
-
-            getSonarScreenshot(graph.getBrowserWidth(), graph.getBrowserHeight(), graph.getImagePath());
-        } catch (Exception e) {
-            LOG.error("Exception while performing Sonar update: ", e);
         }
+
+        // Wait for the screen to load.
+        doSleep(500);
+
+        getSonarScreenshot(graph.getBrowserWidth(), graph.getBrowserHeight(), graph.getImagePath());
 
         plugin.setTsLastUpdated(LocalDateTime.now());
     }

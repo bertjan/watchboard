@@ -68,39 +68,38 @@ public class KibanaPlugin implements WatchboardPlugin {
 
 
     private void performSingleUpdate(Graph graph) {
-        try {
-            LOG.debug("Starting update of {}.", graph.getImagePath());
-            WebDriver driver = wrappedDriver.getDriver();
-            driver.manage().window().setSize(new Dimension(2000, 1000));
-            WebDriverUtils.fetchDummyPage(driver);
-            driver.get(graph.getUrl());
+        LOG.debug("Starting update of {}.", graph.getImagePath());
+        WebDriver driver = wrappedDriver.getDriver();
+        driver.manage().window().setSize(new Dimension(2000, 1000));
+        WebDriverUtils.fetchDummyPage(driver);
+        driver.get(graph.getUrl());
 
-            // Wait until dashboard panels are rendered.
-            int size = 0;
-            for (int i=0; i<20; i++) {
-                size = WebDriverUtils.numberOfElements(driver, By.tagName("visualize"));
-                if (size > 0) {
-                    break;
-                }
-                doSleep(500);
+        // Wait until dashboard panels are rendered.
+        int size = 0;
+        for (int i=0; i<20; i++) {
+            size = WebDriverUtils.numberOfElements(driver, By.tagName("visualize"));
+            if (size > 0) {
+                break;
             }
+            doSleep(500);
+        }
 
-            // If no items were found, skip screenshot.
-            if (size == 0) {
-                LOG.info("No Kibana visualizations found; skipping screenshot.");
-                return;
-            }
+        // If no items were found, skip screenshot.
+        if (size == 0) {
+            LOG.info("No Kibana visualizations found; skipping screenshot.");
+            return;
+        }
 
-            // Wait until a visualization chart is present.
-            size = 0;
-            for (int i=0; i<20; i++) {
-                size = WebDriverUtils.numberOfElements(driver, By.className("visualize-chart"));
-                // LOG.info("visualize-chart size: " + size);
-                if (size > 0) {
-                    break;
-                }
-                doSleep(500);
+        // Wait until a visualization chart is present.
+        size = 0;
+        for (int i=0; i<20; i++) {
+            size = WebDriverUtils.numberOfElements(driver, By.className("visualize-chart"));
+            // LOG.info("visualize-chart size: " + size);
+            if (size > 0) {
+                break;
             }
+            doSleep(500);
+        }
 
 
 //            if (WebDriverUtils.numberOfElements(driver, By.className("vis-wrapper")) > 0) {
@@ -116,13 +115,10 @@ public class KibanaPlugin implements WatchboardPlugin {
 //            }
 
 
-            // Wait one more second to allow for rendering to complete ...
-            doSleep(1000);
+        // Wait one more second to allow for rendering to complete ...
+        doSleep(1000);
 
-            getKibanaScreenshot(graph.getBrowserWidth(), graph.getBrowserHeight(), graph.getImagePath());
-        } catch (Exception e) {
-            LOG.error("Exception while performing Kibana update: ", e);
-        }
+        getKibanaScreenshot(graph.getBrowserWidth(), graph.getBrowserHeight(), graph.getImagePath());
 
         plugin.setTsLastUpdated(LocalDateTime.now());
     }
