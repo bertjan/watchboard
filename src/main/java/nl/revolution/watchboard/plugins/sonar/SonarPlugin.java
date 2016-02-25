@@ -84,7 +84,7 @@ public class SonarPlugin implements WatchboardPlugin {
 
             // Give tiles list some padding at the top.
             WebElement tilesList = driver.findElement(By.className("overview-domains-list"));
-            executor.executeScript("arguments[0].style.padding='5px 0 2px 0';", tilesList);
+            executor.executeScript("arguments[0].style.padding='5px 0 0 0';", tilesList);
 
             // Hide all tiles except the top 2.
             List<WebElement> sonarTiles = tilesList.findElements(By.className("overview-card"));
