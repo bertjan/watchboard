@@ -37,7 +37,7 @@ public class SonarPlugin implements WatchboardPlugin {
             WebDriver driver = wrappedDriver.getDriver();
             driver.manage().window().setSize(new Dimension(2000, 1000));
             driver.get(plugin.getLoginUrl());
-            WebDriverUtils.verifyTitle(driver, "SonarQube", 5);
+            WebDriverUtils.verifyTitle(driver, "SonarQube", 10);
 
             driver.findElement(By.id("login")).sendKeys(plugin.getUsername());
             driver.findElement(By.id("password")).sendKeys(plugin.getPassword());
