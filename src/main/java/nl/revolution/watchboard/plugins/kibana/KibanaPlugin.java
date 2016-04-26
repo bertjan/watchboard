@@ -73,11 +73,18 @@ public class KibanaPlugin implements WatchboardPlugin {
         driver.manage().window().setSize(new Dimension(2000, 1000));
         WebDriverUtils.fetchDummyPage(driver);
 
-        doSleep(250);
         LOG.info("Getting "  + graph.getUrl());
-
         driver.get(graph.getUrl());
-        doSleep(250);
+
+        for (int i=0; i<60; i++) {
+            String currentUrl = driver.getCurrentUrl();
+            if (currentUrl.equals(graph.getUrl())) {
+                // URL loaded.
+                LOG.info("URL loaded.");
+                break;
+            }
+            doSleep(500);
+        }
 
         LOG.info("Current url: " + driver.getCurrentUrl());
 
