@@ -76,7 +76,7 @@ public class KibanaPlugin implements WatchboardPlugin {
         LOG.info("Getting "  + graph.getUrl());
         driver.get(graph.getUrl());
 
-        for (int i=0; i<60; i++) {
+        for (int i=0; i<120; i++) {
             String currentUrl = driver.getCurrentUrl();
             if (currentUrl.equals(graph.getUrl())) {
                 // URL loaded.
