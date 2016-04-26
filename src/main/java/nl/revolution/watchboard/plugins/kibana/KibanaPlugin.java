@@ -36,7 +36,7 @@ public class KibanaPlugin implements WatchboardPlugin {
             WebDriver driver = wrappedDriver.getDriver();
             driver.manage().window().setSize(new Dimension(2000, 1000));
             driver.get(plugin.getLoginUrl());
-            WebDriverUtils.verifyTitle(driver, "Kibana 4", 5);
+            WebDriverUtils.verifyTitle(driver, "Kibana 4", 60);
         } catch (Exception e) {
             LOG.error("Error while logging in to Kibana: ", e);
         }
