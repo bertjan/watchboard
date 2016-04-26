@@ -36,7 +36,7 @@ public class KibanaPlugin implements WatchboardPlugin {
             WebDriver driver = wrappedDriver.getDriver();
             driver.manage().window().setSize(new Dimension(2000, 1000));
             driver.get(plugin.getLoginUrl());
-            WebDriverUtils.verifyTitle(driver, "Kibana 4", 60);
+            WebDriverUtils.verifyTitle(driver, "Kibana 4", 10);
         } catch (Exception e) {
             LOG.error("Error while logging in to Kibana: ", e);
         }
@@ -73,20 +73,16 @@ public class KibanaPlugin implements WatchboardPlugin {
         driver.manage().window().setSize(new Dimension(2000, 1000));
         WebDriverUtils.fetchDummyPage(driver);
 
-        LOG.info("Getting "  + graph.getUrl());
         driver.get(graph.getUrl());
 
-        for (int i=0; i<120; i++) {
+        for (int i=0; i<30; i++) {
             String currentUrl = driver.getCurrentUrl();
             if (currentUrl.equals(graph.getUrl())) {
                 // URL loaded.
-                LOG.info("URL loaded.");
                 break;
             }
             doSleep(500);
         }
-
-        LOG.info("Current url: " + driver.getCurrentUrl());
 
         // Wait until dashboard panels are rendered.
         int size = 0;
@@ -118,20 +114,6 @@ public class KibanaPlugin implements WatchboardPlugin {
             }
             doSleep(500);
         }
-
-
-//            if (WebDriverUtils.numberOfElements(driver, By.className("vis-wrapper")) > 0) {
-//                LOG.info("vis-wrapper exists");
-//                // TODO: is dit nodig?
-//                // Find svg's in the first visualization.
-////                int svgs = driver.findElement(By.tagName("visualize")).findElements(By.tagName("svg")).size();
-////                if (svgs == 0) {
-////                    LOG.info("No Kibana visualizations found; skipping screenshot.");
-////                    return;
-////                }
-//
-//            }
-
 
         // Wait two more seconds to allow for rendering to complete ...
         doSleep(2000);
