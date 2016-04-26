@@ -76,7 +76,7 @@ public class KibanaPlugin implements WatchboardPlugin {
 
         // Wait until dashboard panels are rendered.
         int size = 0;
-        for (int i=0; i<20; i++) {
+        for (int i=0; i<40; i++) {
             size = WebDriverUtils.numberOfElements(driver, By.tagName("visualize"));
             if (size > 0) {
                 break;
@@ -91,7 +91,6 @@ public class KibanaPlugin implements WatchboardPlugin {
         }
 
         // Wait until a visualization chart is present.
-        size = 0;
         for (int i=0; i<20; i++) {
             size = WebDriverUtils.numberOfElements(driver, By.className("visualize-chart"));
             // LOG.info("visualize-chart size: " + size);
@@ -115,8 +114,8 @@ public class KibanaPlugin implements WatchboardPlugin {
 //            }
 
 
-        // Wait one more second to allow for rendering to complete ...
-        doSleep(1000);
+        // Wait two more seconds to allow for rendering to complete ...
+        doSleep(2000);
 
         getKibanaScreenshot(graph.getBrowserWidth(), graph.getBrowserHeight(), graph.getImagePath());
 
