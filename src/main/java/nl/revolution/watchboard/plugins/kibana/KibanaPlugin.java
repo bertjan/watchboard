@@ -76,7 +76,7 @@ public class KibanaPlugin implements WatchboardPlugin {
 
         // Wait until dashboard panels are rendered.
         int size = 0;
-        for (int i=0; i<40; i++) {
+        for (int i=0; i<60; i++) {
             size = WebDriverUtils.numberOfElements(driver, By.tagName("visualize"));
             if (size > 0) {
                 break;
@@ -87,6 +87,11 @@ public class KibanaPlugin implements WatchboardPlugin {
         // If no items were found, skip screenshot.
         if (size == 0) {
             LOG.info("No Kibana visualizations found; skipping screenshot.");
+            try {
+                WebDriverUtils.takeScreenShot(driver, driver.findElement(By.tagName("html")), graph.getImagePath()+"-debug.png");
+            } catch (IOException e) {
+                LOG.error("Error while taking debug screenshot for " + graph.getId() + ": ", e);
+            }
             return;
         }
 
