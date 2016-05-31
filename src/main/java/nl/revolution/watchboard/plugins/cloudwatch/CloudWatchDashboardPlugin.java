@@ -48,15 +48,9 @@ public class CloudWatchDashboardPlugin extends AbstractCloudWatchPlugin {
 
             List<WebElement> spans = timeRangeDropdown.findElements(By.tagName("span")).stream().filter(element -> StringUtils.isNotBlank(element.getText())).collect(Collectors.toList());
 
-            spans.stream().forEach(span -> {
-                LOG.info("got timeRangeDropdown span with content '" + span.getText() + "'.");
-            });
-
             if (!spans.isEmpty()) {
                 WebElement timeZoneElement = spans.get(spans.size()-1);
                 timeZoneElement.click();
-
-                LOG.info("spans in timeRangeDropdown: " + timeRangeDropdown.findElements(By.tagName("span")).stream().map(elem -> elem.getText()).collect(Collectors.toList()));
 
                 Optional<WebElement> localTimeZoneElement = timeRangeDropdown.findElements(By.tagName("span")).stream().filter(elem -> "Local".equals(elem.getText())).findFirst();
                 if (localTimeZoneElement.isPresent()) {
