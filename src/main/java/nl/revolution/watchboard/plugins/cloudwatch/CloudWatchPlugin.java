@@ -45,18 +45,18 @@ public class CloudWatchPlugin extends AbstractCloudWatchPlugin {
 
             loadPageAsync(driver, reportUrl);
 
-            // Select bottom option in timezone select (local time).
-            Select timezoneSelect = new Select(driver.findElement(By.id("gwt-debug-timezoneList")));
-            timezoneSelect.selectByIndex(timezoneSelect.getOptions().size() - 1);
+            // Set time zone.
+            WebElement timeRangeDropdown =  driver.findElement(By.cssSelector(".cwui-datepicker-dropdown-toggle"));
+            timeRangeDropdown.findElement(By.cssSelector("a[role=\"button\"]")).click();
 
-            driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.className("gwt-Image")).stream().forEach(image -> {
-                if (MAXIMIZE_IMAGE_CONTENT.equals(image.getAttribute("src"))) {
-                    image.click();
-                }
-            });
+            WebElement datePickerDropDown = driver.findElement(By.cssSelector(".cwui-datepicker-dropdown"));
 
-            // Trigger re-draw to prevent drawing issues.
-            triggerGraphRedraw(driver);
+            // local timezone zetten
+            WebElement timezoneSelector = datePickerDropDown.findElement(By.cssSelector(".cwui-datepicker-timezone-selector-select"));
+            new Select(timezoneSelector).selectByVisibleText("Local timezone");
+
+            // close timepicker
+            timeRangeDropdown.findElement(By.cssSelector("a[role=\"button\"]")).click();
 
             // Wait until loading is finished.
             boolean graphLoaded = waitUntilGraphIsLoaded(filename);
@@ -65,7 +65,7 @@ public class CloudWatchPlugin extends AbstractCloudWatchPlugin {
             }
 
             try {
-                takeScreenShot(driver, driver.findElement(By.id("gwt-debug-graphContainer")), filename);
+                takeScreenShot(driver, driver.findElement(By.cssSelector(".cwdb-standalone-graph-container-graph")), filename);
             } catch (IOException e) {
                 LOG.error("Error while taking screenshot:", e);
                 return false;
@@ -79,15 +79,6 @@ public class CloudWatchPlugin extends AbstractCloudWatchPlugin {
         long end = System.currentTimeMillis();
         LOG.info("Updating " + filename + " took " + (end - start) + " ms.");
         return true;
-    }
-
-
-    private void triggerGraphRedraw(WebDriver driver) {
-        driver.findElement(By.id("gwt-debug-detailPanel")).findElements(By.tagName("button")).stream().forEach(button -> {
-            if ("Update Graph".equals(button.getAttribute("title"))) {
-                button.click();
-            }
-        });
     }
 
     @Override
