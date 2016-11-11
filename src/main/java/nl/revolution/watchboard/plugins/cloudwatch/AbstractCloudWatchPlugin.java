@@ -137,7 +137,7 @@ public abstract class AbstractCloudWatchPlugin implements WatchboardPlugin {
     abstract void performSingleUpdate(Graph graph);
 
     protected int visibleLoadingIcons(WebDriver driver) {
-        return WebDriverUtils.numberOfElements(driver, By.className("cwdb-loader-container"));
+        return WebDriverUtils.numberOfElements(driver, By.cssSelector(".cwdb-loader-container"));
     }
 
 }

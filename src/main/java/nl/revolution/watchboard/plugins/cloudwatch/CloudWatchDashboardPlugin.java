@@ -2,16 +2,13 @@ package nl.revolution.watchboard.plugins.cloudwatch;
 
 import nl.revolution.watchboard.data.Graph;
 import nl.revolution.watchboard.utils.WebDriverUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.*;
+import org.openqa.selenium.support.ui.Select;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static nl.revolution.watchboard.utils.WebDriverUtils.doSleep;
 import static nl.revolution.watchboard.utils.WebDriverUtils.takeScreenShot;
@@ -42,45 +39,23 @@ public class CloudWatchDashboardPlugin extends AbstractCloudWatchPlugin {
             loadPageAsync(driver, reportUrl);
 
             // Set time zone.
-            boolean timezoneSettingSucceeded = false;
-            WebElement timeRangeDropdown =  driver.findElement(By.className("cwdb-time-range-dropdown"));
-            timeRangeDropdown.findElement(By.tagName("button")).click();
+            WebElement timeRangeDropdown =  driver.findElement(By.cssSelector(".cwui-datepicker-dropdown-toggle"));
+            timeRangeDropdown.findElement(By.cssSelector("a[role=\"button\"]")).click();
 
-            List<WebElement> spans = timeRangeDropdown.findElements(By.tagName("span")).stream().filter(element -> StringUtils.isNotBlank(element.getText())).collect(Collectors.toList());
+            WebElement datePickerDropDown = driver.findElement(By.cssSelector(".cwui-datepicker-dropdown"));
 
-            if (!spans.isEmpty()) {
-                WebElement timeZoneElement = spans.get(spans.size()-1);
-                timeZoneElement.click();
+            // local timezone zetten
+            WebElement timezoneSelector = datePickerDropDown.findElement(By.cssSelector(".cwui-datepicker-timezone-selector-select"));
+            new Select(timezoneSelector).selectByVisibleText("Local timezone");
 
-                Optional<WebElement> localTimeZoneElement = timeRangeDropdown.findElements(By.tagName("span")).stream().filter(elem -> "Local".equals(elem.getText())).findFirst();
-                if (localTimeZoneElement.isPresent()) {
-                    localTimeZoneElement.get().click();
-                    timezoneSettingSucceeded = true;
-                }
-            }
-
-            if (!timezoneSettingSucceeded) {
-                LOG.error("Setting time zone failed for graph " + filename);
-            }
-
-            // Wait until dashboard is loaded.
-            boolean graphLoaded = waitUntilGraphIsLoaded(filename);
-            if (!graphLoaded) {
-                return false;
-            }
-
-            Optional<WebElement> timeRangeInputField = driver.findElement(By.className("cwdb-time-range-controls")).findElements(By.tagName("input")).stream().filter(input -> "number".equals(input.getAttribute("type"))).findFirst();
-            if (timeRangeInputField.isPresent()) {
-                timeRangeInputField.get().clear();
-                timeRangeInputField.get().sendKeys(String.valueOf(timeRange));
-                timeRangeInputField.get().sendKeys(Keys.RETURN);
-            }
-
-            // Click refresh button.
-            Optional<WebElement> refreshButton = driver.findElements(By.tagName("button")).stream().filter(button -> "refresh".equals(button.getAttribute("data-role"))).findFirst();
-            if (refreshButton.isPresent()) {
-                refreshButton.get().click();
-            }
+            // timerange selecteren
+            datePickerDropDown.findElements(By.cssSelector(".cwui-datepicker-duration-row"))
+                    .get(1)
+                    .findElements(By.tagName("button")).stream()
+                    .filter(elem -> elem.getText().equals(String.valueOf(timeRange)))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Could not find button for timerage: " + timeRange))
+                    .click();
 
             // Next step: wait for the individual graphs to be loaded.
             // First, wait up to two seconds for 'loading' indicators to appear.
@@ -97,7 +72,7 @@ public class CloudWatchDashboardPlugin extends AbstractCloudWatchPlugin {
             }
 
             // Wait until all individual graphs are loaded.
-            graphLoaded = waitUntilGraphIsLoaded(filename);
+            boolean graphLoaded = waitUntilGraphIsLoaded(filename);
             if (!graphLoaded) {
                 return false;
             }
