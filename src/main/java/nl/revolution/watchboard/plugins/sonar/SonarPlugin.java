@@ -76,7 +76,7 @@ public class SonarPlugin implements WatchboardPlugin {
     private void performSingleUpdate(Graph graph) {
         LOG.debug("Starting update of {}.", graph.getImagePath());
         WebDriver driver = wrappedDriver.getDriver();
-        driver.manage().window().setSize(new Dimension(2000, 1000));
+        driver.manage().window().setSize(new Dimension(1500, 1000));
 
         WebDriverUtils.fetchDummyPage(driver);
         driver.get(graph.getUrl());
@@ -84,19 +84,21 @@ public class SonarPlugin implements WatchboardPlugin {
         // Wait for the screen to load.
         doSleep(500);
 
-        JavascriptExecutor executor = (JavascriptExecutor)driver;
+        // Fix flexbox CSS issues
+        FlexboxCssFix.flexboxFix(driver);
 
         // Give tiles list some padding at the top.
-        WebElement tilesList = driver.findElement(By.className("overview-domains-list"));
-        executor.executeScript("arguments[0].style.padding='5px 0 0 0';", tilesList);
+        WebElement overview = driver.findElement(By.className("overview"));
+        WebElement overviewMain = overview.findElement(By.className("overview-main"));
+        WebElement tilesList = overviewMain.findElement(By.className("overview-domains-list"));
+
+        JavascriptExecutor executor = (JavascriptExecutor)driver;
 
         // Hide all tiles except the top 2.
         List<WebElement> sonarTiles = tilesList.findElements(By.className("overview-card"));
-        for (int i=0; i<sonarTiles.size(); i++) {
-            if (i>1) {
-                WebElement tile = sonarTiles.get(i);
-                executor.executeScript("arguments[0].style.display='none';", tile);
-            }
+        for (int i = 2; i < sonarTiles.size(); i++) {
+            WebElement tile = sonarTiles.get(i);
+            executor.executeScript("arguments[0].style.display='none';", tile);
         }
 
         // Wait for the screen to load.
