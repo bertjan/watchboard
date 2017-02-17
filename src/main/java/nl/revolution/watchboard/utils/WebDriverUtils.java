@@ -35,9 +35,24 @@ public class WebDriverUtils {
         File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
         // Crop the entire page screenshot to get only element screenshot.
         try {
-            BufferedImage eleScreenshot = ImageIO.read(screenshot).getSubimage(
+            BufferedImage image = ImageIO.read(screenshot);
+            int elementWidth = element.getSize().getWidth();
+            int elementHeight = element.getSize().getHeight();
+
+            int subImageWidth = Math.min(elementWidth, image.getWidth() - element.getLocation().getX());
+            int subImageHeight = Math.min(elementHeight, image.getHeight() - element.getLocation().getY());
+
+            if (subImageWidth != elementWidth) {
+                LOG.warn("Image will be cropped horizontally: expected {} px, but will be {} px", elementWidth, subImageWidth);
+            }
+
+            if (subImageHeight != elementHeight) {
+                LOG.warn("Image will be cropped vertically: expected {} px, but will be {} px", elementHeight, subImageHeight);
+            }
+
+            BufferedImage eleScreenshot = image.getSubimage(
                     element.getLocation().getX(), element.getLocation().getY(),
-                    element.getSize().getWidth(), element.getSize().getHeight());
+                    subImageWidth, subImageHeight);
             ImageIO.write(eleScreenshot, "png", screenshot);
             FileUtils.copyFile(screenshot, new File(fileName));
             try {
