@@ -18,15 +18,17 @@ import static nl.revolution.watchboard.utils.WebDriverUtils.doSleep;
 public class KibanaPlugin implements WatchboardPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(KibanaPlugin.class);
+    private final Graph.Type type;
 
     private boolean stop;
 
     private Plugin plugin;
     private WebDriverWrapper wrappedDriver;
 
-    public KibanaPlugin() {
+    public KibanaPlugin(Graph.Type type) {
         LOG.info("Starting Kibana plugin.");
-        plugin = Config.getInstance().getPlugin(Graph.Type.KIBANA);
+        this.type = type;
+        plugin = Config.getInstance().getPlugin(this.type);
     }
 
     @Override
@@ -55,7 +57,7 @@ public class KibanaPlugin implements WatchboardPlugin {
 
         // Generate reports for all graphs for all dashboards.
         LOG.info("Updating data from Kibana.");
-        Config.getInstance().getGrapsForType(Graph.Type.KIBANA).stream().forEach(graph -> {
+        Config.getInstance().getGrapsForType(type).stream().forEach(graph -> {
                 if (!stop) {
                     performSingleUpdate(graph);
                 }

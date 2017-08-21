@@ -56,8 +56,16 @@ public class PluginSource {
             if (kibanaPlugin != null
                     && Config.getInstance().getGraphCountForType(Graph.Type.KIBANA) > 0
                     && browserInstance.equals(kibanaPlugin.getBrowserInstance())) {
-                pluginsForBrowserInstance.add(new KibanaPlugin());
+                pluginsForBrowserInstance.add(new KibanaPlugin(Graph.Type.KIBANA));
                 LOG.info("Kibana plugin configured for browser instance '" + browserInstance + "'.");
+            }
+
+            Plugin kibana5Plugin = Config.getInstance().getPlugin(Graph.Type.KIBANA5);
+            if (kibana5Plugin != null
+                    && Config.getInstance().getGraphCountForType(Graph.Type.KIBANA5) > 0
+                    && browserInstance.equals(kibana5Plugin.getBrowserInstance())) {
+                pluginsForBrowserInstance.add(new KibanaPlugin(Graph.Type.KIBANA5));
+                LOG.info("Kibana5 plugin configured for browser instance '" + browserInstance + "'.");
             }
 
             Plugin sonarPlugin = Config.getInstance().getPlugin(Graph.Type.SONAR);
