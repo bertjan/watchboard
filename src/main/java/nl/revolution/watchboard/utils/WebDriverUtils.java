@@ -76,9 +76,9 @@ public class WebDriverUtils {
     }
 
     public static void verifyTitle(WebDriver driver, String expectedTitle, long timeoutInSeconds) {
-        new WebDriverWait(driver, timeoutInSeconds).until(ExpectedConditions.titleIs(expectedTitle));
-        if (!expectedTitle.equals(driver.getTitle())) {
-            LOG.error("Expected title '{}' does not match actual title '{}'.", expectedTitle, driver.getTitle());
+        new WebDriverWait(driver, timeoutInSeconds).until(ExpectedConditions.titleContains(expectedTitle));
+        if (!driver.getTitle().contains(expectedTitle)) {
+            LOG.error("Expected title '{}' is not contained in actual title '{}'.", expectedTitle, driver.getTitle());
         }
     }
 
